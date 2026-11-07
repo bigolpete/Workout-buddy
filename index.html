@@ -1,0 +1,2767 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1012">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>LiftLog</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e8541e'/%3E%3Crect x='6' y='14' width='20' height='4' rx='1' fill='white'/%3E%3Crect x='5' y='9' width='5' height='14' rx='1.5' fill='white'/%3E%3Crect x='22' y='9' width='5' height='14' rx='1.5' fill='white'/%3E%3C/svg%3E">
+  <style>
+:root {
+  --bg: #0f1012;
+  --surface: #18191c;
+  --surface-2: #222328;
+  --ink: #f2f2ef;
+  --ink-2: #b6b9bf;
+  --muted: #82868d;
+  --line: #2a2c31;
+  --accent: #ff7a45;
+  --accent-soft: #3a2117;
+  --on-accent: #1a0d07;
+  --good: #4cc786;
+  --good-soft: #15291e;
+  --danger: #ff6b5e;
+  --fig: #ececea;
+  --fig-far: #5b5f66;
+  --eq: #6a6f77;
+  --shadow: none;
+  --hm-sil: #26282d;
+  --hm-0: #3b3e45;
+  --hm-1: #5e3424;
+  --hm-2: #b0532c;
+  --hm-3: #ff7a45;
+  --r: 16px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+body.has-sheet { overflow: hidden; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, h3 { margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: 1.75rem; line-height: 1.15; }
+h2 { font-size: 1.15rem; }
+h3 { font-size: 1rem; }
+.muted { color: var(--muted); font-weight: 400; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+#app { max-width: 600px; margin: 0 auto; padding: 0 16px 24px; }
+
+.top { padding: 28px 0 12px; }
+.top.row { display: flex; align-items: center; gap: 12px; }
+.wo-head { justify-content: space-between; }
+.eyebrow { margin: 0 0 4px; font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
+.sub { margin: 6px 0 0; color: var(--ink-2); font-size: .95rem; }
+.sub.pad { margin: 0 0 14px; }
+.note { color: var(--muted); font-size: .82rem; margin: 10px 0 0; }
+.empty { color: var(--muted); text-align: center; padding: 24px 0; }
+
+/* buttons */
+.btn {
+  border: 0; border-radius: 12px; padding: 14px 18px; font-weight: 650;
+  background: var(--surface-2); color: var(--ink); transition: transform .08s, opacity .15s;
+}
+.btn:active { transform: scale(.98); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; border: 1.5px solid var(--line); }
+.btn.small { padding: 8px 14px; font-size: .9rem; border-radius: 10px; }
+.btn.block { width: 100%; display: block; }
+.btn.danger, .link.danger { color: var(--danger); }
+.btn.add { margin-top: 10px; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.icon-btn { border: 0; background: var(--surface-2); width: 40px; height: 40px; border-radius: 12px; font-size: 1.4rem; line-height: 1; flex: none; }
+.link { border: 0; background: none; padding: 8px 4px; color: var(--accent); font-weight: 600; font-size: .92rem; }
+.chip {
+  border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 6px 12px; font-size: .85rem; font-weight: 600; white-space: nowrap;
+}
+.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip.ghost { color: var(--muted); }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.cta-bar {
+  position: sticky; bottom: calc(72px + env(safe-area-inset-bottom)); padding: 14px 0 4px;
+  background: linear-gradient(to bottom, transparent, var(--bg) 30%);
+  display: grid; gap: 8px; margin-top: 8px;
+}
+
+.card { background: var(--surface); border-radius: var(--r); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+
+/* figures */
+.fig { width: 100%; height: 100%; display: block; overflow: visible; }
+.fig line { stroke-linecap: round; }
+.f-floor { stroke: var(--line); stroke-width: 2; }
+.f-eq { stroke: var(--eq); opacity: .55; }
+.f-limb { stroke: var(--fig); stroke-width: 6; }
+.f-far { stroke: var(--fig-far); stroke-width: 6; }
+.f-body { stroke: var(--fig); }
+.f-head { fill: var(--fig); }
+.f-joint { fill: var(--fig); }
+.f-wt { fill: var(--accent); }
+.f-plate { fill: none; stroke: var(--accent); stroke-width: 3.5; }
+.f-bar { stroke: var(--accent); }
+.f-cable { stroke: var(--eq); stroke-dasharray: 3 3; }
+.f-pulley { fill: none; stroke: var(--eq); stroke-width: 2; }
+.f-ghost { opacity: .25; }
+
+/* muscle groups */
+.group-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
+.group {
+  position: relative; text-align: left; border: 2px solid transparent; background: var(--surface);
+  border-radius: var(--r); padding: 10px 14px 14px; box-shadow: var(--shadow);
+  display: grid; grid-template-rows: auto auto auto; transition: border-color .15s, transform .08s;
+}
+.group:active { transform: scale(.98); }
+.group.on { border-color: var(--accent); background: var(--accent-soft); }
+.g-fig { width: 76px; height: 76px; margin: 0 0 4px -6px; display: block; }
+.g-name { font-weight: 700; font-size: 1.05rem; }
+.g-meta { font-size: .8rem; color: var(--muted); }
+.g-check {
+  position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: .85rem; font-weight: 800;
+}
+
+/* plan list */
+.lift-list { display: grid; gap: 10px; }
+.lift-card { display: grid; grid-template-columns: 96px 1fr; gap: 12px; background: var(--surface); border-radius: var(--r); padding: 12px; box-shadow: var(--shadow); }
+.thumb { width: 96px; height: 96px; background: var(--surface-2); border-radius: 12px; padding: 4px; }
+.lc-body { min-width: 0; }
+.lc-body h3 { font-size: 1.02rem; }
+.meta { margin: 2px 0 0; color: var(--ink-2); font-size: .85rem; }
+.last { margin: 4px 0 0; font-size: .82rem; color: var(--ink-2); }
+.last span { font-weight: 700; color: var(--good); margin-right: 4px; }
+.last.new { color: var(--muted); }
+.lc-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+
+/* workout */
+.dots { list-style: none; padding: 0; margin: 4px 0 14px; display: flex; gap: 6px; }
+.dots li { flex: 1; }
+.dot { width: 100%; height: 6px; border-radius: 3px; border: 0; padding: 0; background: var(--line); display: block; }
+.dot.ok { background: var(--good); }
+.dot.skip { background: var(--muted); opacity: .5; }
+.dot.cur { background: var(--accent); }
+
+.ex-card { display: grid; grid-template-columns: minmax(130px, 220px) 1fr; gap: 6px 16px; align-items: center; }
+.ex-fig { aspect-ratio: 1; background: var(--surface-2); border-radius: 14px; padding: 4px; }
+.ex-info h2 { font-size: 1.35rem; }
+.howto { grid-column: 1 / -1; margin-top: 8px; }
+.howto summary { font-weight: 600; font-size: .9rem; color: var(--accent); cursor: pointer; }
+.howto ol { margin: 8px 0 0; padding-left: 20px; font-size: .9rem; color: var(--ink-2); }
+.howto li + li { margin-top: 4px; }
+@media (max-width: 480px) {
+  .ex-card { grid-template-columns: 136px 1fr; }
+  .ex-info h2 { font-size: 1.2rem; }
+}
+
+.lasttime { background: var(--good-soft); border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+.lasttime.new { background: var(--surface-2); }
+.lt-label { display: block; font-size: .8rem; font-weight: 600; color: var(--ink-2); }
+.lt-sets { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 2px; }
+.lt-sets b { font-variant-numeric: tabular-nums; font-size: 1.02rem; }
+
+.sets { display: grid; gap: 6px; }
+.set-head, .set-row { display: grid; grid-template-columns: 34px 1fr 76px 64px 46px; gap: 8px; align-items: center; }
+.set-head { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 0 2px; }
+.set-head span:nth-child(3), .set-head span:nth-child(4) { text-align: center; }
+.set-row { padding: 4px 2px; border-radius: 12px; transition: background .15s; }
+.set-row.done { background: var(--good-soft); }
+.set-n { font-weight: 700; text-align: center; }
+.prev { color: var(--muted); font-size: .88rem; font-variant-numeric: tabular-nums; }
+.set-row input {
+  width: 100%; height: 44px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface-2);
+  text-align: center; font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; -moz-appearance: textfield;
+}
+.set-row input::-webkit-outer-spin-button, .set-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.set-row input::placeholder { color: var(--muted); font-weight: 500; }
+.set-row input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+.set-row.done input { background: transparent; border-color: transparent; }
+.check {
+  width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface);
+  font-size: 1.15rem; font-weight: 800; color: var(--muted);
+}
+.set-row.done .check { background: var(--good); border-color: var(--good); color: var(--surface); }
+.shake { animation: shake .35s; border-color: var(--danger) !important; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.set-tools { display: flex; justify-content: space-between; margin-top: 4px; }
+
+.rest { margin-top: 10px; display: grid; grid-template-columns: auto auto 1fr auto auto; gap: 10px; align-items: center; background: var(--surface-2); border-radius: 12px; padding: 8px 12px; }
+.rest span { font-size: .8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.rest b { font-variant-numeric: tabular-nums; font-size: 1.15rem; min-width: 3ch; }
+.rest-bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.rest-bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .25s linear; }
+.rest.over { background: var(--accent-soft); }
+.rest.over b { color: var(--accent); }
+.rest .link { padding: 4px; }
+
+.wo-cta { margin: 4px 0 14px; }
+.upnext ul { list-style: none; margin: 8px 0; padding: 0; }
+.upnext li button { width: 100%; display: flex; justify-content: space-between; gap: 8px; border: 0; background: none; padding: 10px 8px; border-radius: 10px; text-align: left; }
+.upnext li.cur button { background: var(--surface-2); font-weight: 700; }
+.upnext .link + .link { float: right; }
+
+/* summary / tiles */
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+.tile { background: var(--surface); border-radius: var(--r); padding: 12px 14px; box-shadow: var(--shadow); min-width: 0; }
+.tile span { display: block; font-size: .75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile b { font-size: 1.4rem; font-variant-numeric: tabular-nums; }
+.pr { border: 2px solid var(--accent); }
+.pr ul, .hist-sets { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
+.pr li, .hist-sets li { display: grid; }
+.pr em { color: var(--muted); font-style: normal; }
+.hist-sets span { color: var(--ink-2); font-size: .9rem; font-variant-numeric: tabular-nums; }
+
+/* progress */
+.field { display: grid; gap: 4px; margin-top: 12px; font-size: .85rem; color: var(--ink-2); }
+.field.row { grid-template-columns: 1fr auto; align-items: center; }
+.field select, .field input {
+  width: 100%; padding: 11px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink); font-size: 1rem;
+}
+.field.row select { width: auto; }
+.seg { display: flex; background: var(--surface-2); border-radius: 10px; padding: 3px; margin: 10px 0 4px; }
+.seg button { flex: 1; border: 0; background: none; padding: 8px 6px; border-radius: 8px; font-size: .85rem; font-weight: 600; color: var(--ink-2); }
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.up { color: var(--good); font-weight: 700; }
+.down { color: var(--danger); font-weight: 700; }
+
+.chart { position: relative; margin-top: 8px; min-height: 220px; touch-action: pan-y; }
+.chart svg { display: block; overflow: visible; }
+.c-grid { stroke: var(--line); stroke-width: 1; }
+.c-base { stroke: var(--muted); stroke-width: 1; }
+.c-axis { fill: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.c-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.c-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.c-hl { fill: var(--accent); stroke: var(--surface); stroke-width: 3; pointer-events: none; }
+.c-cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
+.c-val { fill: var(--ink); font-size: 12px; font-weight: 700; }
+.c-bar { fill: var(--accent); }
+.c-empty { color: var(--muted); text-align: center; padding: 80px 0; margin: 0; }
+.c-tip {
+  position: absolute; display: none; pointer-events: none; background: var(--ink); color: var(--bg);
+  padding: 6px 10px; border-radius: 8px; font-size: .8rem; white-space: nowrap; z-index: 2;
+}
+.c-tip b { display: block; font-size: .95rem; }
+.c-tip span { opacity: .8; }
+.table-view { margin-top: 10px; font-size: .88rem; }
+.table-view summary { color: var(--accent); font-weight: 600; cursor: pointer; }
+.table-view table { width: 100%; border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.table-view th, .table-view td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.table-view th { color: var(--muted); font-weight: 600; font-size: .78rem; }
+.empty-state { text-align: center; padding: 32px 20px; }
+.empty-state p { color: var(--ink-2); }
+
+/* history */
+.hist { list-style: none; padding: 0; margin: 0; }
+.hist-item { padding: 0; }
+.hist-head { width: 100%; border: 0; background: none; padding: 14px 16px; display: flex; justify-content: space-between; gap: 8px; text-align: left; align-items: center; }
+.hist-head > span:first-child { display: grid; }
+.hist-head .muted { font-size: .85rem; }
+.hist-item .hist-sets { padding: 0 16px; margin: 0 0 4px; }
+.hist-item .link { margin: 4px 12px 10px; }
+
+/* picker sheet */
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: var(--bg); width: 100%; max-width: 600px; max-height: 88vh; overflow: auto;
+  border-radius: 20px 20px 0 0; padding: 16px 16px calc(24px + env(safe-area-inset-bottom));
+}
+.sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+#pk-q { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); }
+.chips-row { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
+.pk-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.pk-list button { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; border: 0; background: var(--surface); border-radius: 12px; padding: 8px 12px 8px 8px; }
+.pk-list button:disabled { opacity: .45; cursor: default; }
+.pk-list b { display: block; }
+.pk-list .muted { font-size: .82rem; }
+.pk-fig { width: 52px; height: 52px; flex: none; background: var(--surface-2); border-radius: 10px; padding: 2px; }
+.custom { margin-top: 14px; background: var(--surface); border-radius: 12px; padding: 12px 14px; }
+.custom summary { font-weight: 650; cursor: pointer; }
+.custom-form { display: grid; gap: 4px; }
+.custom-form .btn { margin-top: 12px; }
+
+/* tabs */
+#tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; justify-content: center; gap: 4px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+}
+#tabs button { flex: 1; max-width: 160px; border: 0; background: none; display: grid; justify-items: center; gap: 2px; padding: 6px; font-size: .75rem; font-weight: 600; color: var(--muted); border-radius: 10px; }
+#tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#tabs button[aria-current="page"] { color: var(--accent); }
+
+#toast {
+  position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px);
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: .9rem; font-weight: 600;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 30; max-width: calc(100% - 32px);
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.has-undo { display: flex; align-items: center; gap: 14px; padding: 6px 6px 6px 16px; }
+#toast.has-undo.show { pointer-events: auto; }
+#toast button { background: none; border: 0; color: var(--accent-ink, #c2410c); font: inherit; font-weight: 800; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+#toast button:hover { background: rgba(0, 0, 0, .08); }
+
+button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+
+/* muscle heatmap */
+.hm-wrap { display: flex; gap: 4px; justify-content: center; }
+.hm-body { width: 64px; height: auto; display: block; }
+.hm-wrap.mini .hm-body { width: 30px; }
+.hm-sil { fill: var(--hm-sil); }
+.hm { stroke: var(--surface); stroke-width: .7; stroke-linejoin: round; }
+.hm-0 { fill: var(--hm-0); } .hm-1 { fill: var(--hm-1); } .hm-2 { fill: var(--hm-2); } .hm-3 { fill: var(--hm-3); }
+.hm-lbl { font-size: 15px; fill: var(--muted); text-anchor: middle; font-weight: 600; }
+.hm-key { display: flex; gap: 12px; flex-wrap: wrap; font-size: .76rem; color: var(--ink-2); margin-top: 6px; }
+.hm-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+.works { margin: 4px 0 0; font-size: .8rem; color: var(--ink-2); }
+.lc-map { margin-top: 8px; }
+.ex-map { margin-top: 10px; }
+.ex-map .hm-wrap { justify-content: flex-start; }
+.ex-map .hm-body { width: 56px; }
+.cov { margin-top: 14px; }
+.cov-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.cov-head h2 { font-size: 1.1rem; }
+.cov-score { font-size: .8rem; font-weight: 700; color: var(--ink-2); background: var(--surface-2); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.cov-score.full { background: var(--good-soft); color: var(--good); }
+.cov-body { display: grid; grid-template-columns: auto 1fr; gap: 16px; margin-top: 12px; align-items: start; }
+.cov-map .hm-body { width: 60px; }
+.cov-list h3 { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 4px; }
+.cov-list h3:not(:first-child) { margin-top: 12px; }
+.cov-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cov-list li { display: grid; grid-template-columns: 20px 1fr; gap: 6px; font-size: .88rem; }
+.cv-ic { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: .7rem; font-weight: 800; margin-top: 1px; }
+.cv-hit .cv-ic { background: var(--good-soft); color: var(--good); }
+.cv-light .cv-ic { background: var(--accent-soft); color: var(--accent); }
+.cv-miss .cv-ic { background: var(--surface-2); color: var(--danger); }
+.cv-state { font-size: .76rem; color: var(--muted); }
+.cv-by { display: block; font-size: .78rem; color: var(--ink-2); }
+.cv-sug { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px; font-size: .78rem; color: var(--ink-2); }
+.chip.small { padding: 4px 9px; font-size: .76rem; }
+@media (max-width: 420px) {
+  .cov-body { grid-template-columns: 1fr; }
+  .cov-map .hm-wrap { justify-content: center; }
+}
+.pk-txt { flex: 1; min-width: 0; }
+.pk-fill { display: inline-block; margin-top: 3px; font-size: .74rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 1px 7px; }
+.pk-map { flex: none; }
+.pk-note { font-size: .82rem; color: var(--ink-2); padding: 4px 4px 6px; }
+.pk-list .pk-note b { display: inline; }
+.muted-link { display: block; margin: 6px auto 0; color: var(--muted); font-weight: 500; font-size: .85rem; }
+.lasttime.new .lt-label { margin: 0; display: grid; gap: 4px; }
+.lasttime.new .sw { font-size: 1.05rem; color: var(--ink); }
+.lasttime.new .lt-label span { color: var(--ink-2); font-size: .88rem; }
+.prof { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.prof-h { grid-column: 1 / -1; font-size: .8rem; color: var(--muted); }
+.prof label { display: grid; gap: 4px; font-size: .78rem; color: var(--muted); min-width: 0; }
+.prof input, .prof select { width: 100%; min-width: 0; }
+.cal { margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); font-size: .88rem; color: var(--muted); }
+.cal b { color: var(--accent); }
+.gear-card { margin-top: 22px; }
+.gear-card h2 { margin: 0; font-size: 1.05rem; }
+.gear-list { display: grid; gap: 8px; margin-top: 12px; }
+.gear { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+.gear > span:last-child { display: grid; gap: 2px; min-width: 0; }
+.gear .muted { font-size: .82rem; }
+.gear.on { border-color: var(--accent); background: var(--accent-soft); }
+.gear-box { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--muted); display: grid; place-items: center;
+  font-size: .8rem; font-weight: 800; color: var(--on-accent); }
+.gear.on .gear-box { background: var(--accent); border-color: var(--accent); }
+.pk-no { opacity: .55; }
+.xp-btn { margin-top: 8px; }
+.xp .sheet-head h2 { margin: 2px 0 0; }
+.xp-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: center; background: var(--surface); border-radius: 14px; padding: 10px; }
+.xp-fig { aspect-ratio: 1; background: var(--surface-2); border-radius: 12px; }
+.xp-map .works { margin: 6px 0 0; text-align: center; }
+.xp-tip { margin: 14px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--accent-soft); color: var(--ink); font-size: .92rem; line-height: 1.45; }
+.xp-tip b { display: block; color: var(--accent); font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+.xp-sec { margin-top: 16px; }
+.xp-sec h3 { margin: 0 0 6px; font-size: .95rem; }
+.xp-sec ol, .xp-sec ul { margin: 0; padding-left: 20px; color: var(--ink-2); font-size: .92rem; line-height: 1.45; }
+.xp-sec li + li { margin-top: 5px; }
+.xp-sec p { margin: 0; color: var(--ink-2); font-size: .92rem; line-height: 1.45; }
+.xp-stop { margin-top: 16px; }
+</style>
+</head>
+<body>
+  <main id="app" aria-live="polite"></main>
+  <nav id="tabs" aria-label="Main">
+    <button data-act="tab" data-tab="train"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4M7 7v10M17 7v10M20 10v4M7 12h10"/></svg>Train</button>
+    <button data-act="tab" data-tab="progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M5 15l4-4 3 3 6-7"/></svg>Progress</button>
+    <button data-act="tab" data-tab="history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg>History</button>
+  </nav>
+  <script>
+/* ===== exercises.js ===== */
+/* Exercise library. Order within a group = suggestion order (compound lifts first).
+ * Pose keys are documented at the top of figure.js. */
+(function () {
+  const GROUPS = [
+    { id: 'chest', name: 'Chest' },
+    { id: 'back', name: 'Back' },
+    { id: 'shoulders', name: 'Shoulders' },
+    { id: 'biceps', name: 'Biceps' },
+    { id: 'triceps', name: 'Triceps' },
+    { id: 'legs', name: 'Legs' },
+    { id: 'core', name: 'Core' },
+  ];
+
+  // ---- shared pose fragments -------------------------------------------
+  const STAND = { hx: 100, hy: 118, t: 0, ua: 0, fa: 0, foot: [102, 182], foot2: [98, 182] };
+  const LIE = { hx: 65, hy: 128, t: 90, foot: [42, 182], toe: [33, 182], lb: 'up' };
+  const BENCH = [
+    { type: 'line', x1: 40, y1: 135, x2: 140, y2: 135, w: 6 },
+    { type: 'line', x1: 55, y1: 135, x2: 55, y2: 182, w: 3 },
+    { type: 'line', x1: 128, y1: 135, x2: 128, y2: 182, w: 3 },
+  ];
+  const HINGE = { hx: 92, hy: 123, t: 70, foot: [100, 182], foot2: [96, 182] };
+  const SEAT = { hx: 90, hy: 150, th: 90, sh: 0 };
+  const SEAT_EQ = [
+    { type: 'line', x1: 70, y1: 157, x2: 112, y2: 157, w: 6 },
+    { type: 'line', x1: 92, y1: 157, x2: 92, y2: 182, w: 3 },
+  ];
+  const PUSHUP_A = { hx: 98, hy: 153, t: 65, hand: [140, 181], ab: 'back', foot: [40, 175], toe: [44, 182] };
+  const PUSHUP_B = { hx: 101, hy: 166, t: 78, hand: [140, 181], ab: 'back', foot: [40, 175], toe: [44, 182] };
+
+  const EX = [
+    // ---------------------------------------------------------------- CHEST
+    {
+      id: 'bench-press', name: 'Barbell Bench Press', groups: ['chest', 'triceps'], equip: 'Barbell', sets: 3, reps: '6–10',
+      cues: ['Lie with eyes under the bar, feet flat, shoulder blades squeezed together.', 'Lower the bar under control to your mid-chest, elbows about 45° from your body.', 'Press up and slightly back until your arms are straight over your shoulders.'],
+      anim: { a: { ...LIE, ua: 180, fa: 180 }, b: { ...LIE, ua: 300, fa: 177 }, eq: [...BENCH, { type: 'bb' }] },
+    },
+    {
+      id: 'incline-db-press', name: 'Incline Dumbbell Press', groups: ['chest', 'shoulders'], equip: 'Dumbbell', sets: 3, reps: '8–12',
+      cues: ['Set the bench to 30–45°. Start with dumbbells over your upper chest.', 'Lower until the dumbbells are beside your chest with a slight stretch.', 'Press up and slightly together without clanging the weights.'],
+      anim: {
+        a: { hx: 75, hy: 150, t: 60, ua: 185, fa: 185, foot: [43, 182], toe: [34, 182], lb: 'up' },
+        b: { hx: 75, hy: 150, t: 60, ua: 320, fa: 190, foot: [43, 182], toe: [34, 182], lb: 'up' },
+        eq: [{ type: 'line', x1: 79, y1: 156, x2: 124, y2: 129, w: 6 }, { type: 'line', x1: 48, y1: 157, x2: 84, y2: 157, w: 6 }, { type: 'line', x1: 84, y1: 157, x2: 84, y2: 182, w: 3 }, { type: 'db' }],
+      },
+    },
+    {
+      id: 'db-bench', name: 'Dumbbell Bench Press', groups: ['chest'], equip: 'Dumbbell', sets: 3, reps: '8–12',
+      cues: ['Lie flat with dumbbells over your chest, palms facing your feet.', 'Lower slowly until your elbows are just below the bench line.', 'Drive the weights back up, keeping your wrists stacked over your elbows.'],
+      anim: { a: { ...LIE, ua: 180, fa: 180 }, b: { ...LIE, ua: 305, fa: 180 }, eq: [...BENCH, { type: 'db' }] },
+    },
+    {
+      id: 'push-up', name: 'Push-Up', groups: ['chest', 'triceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '10–20',
+      cues: ['Hands just wider than shoulders, body in one straight line from head to heels.', 'Lower your chest to just above the floor, elbows angled back.', 'Push the floor away until your arms are straight. Keep your hips from sagging.'],
+      anim: { a: PUSHUP_A, b: PUSHUP_B },
+    },
+    {
+      id: 'cable-fly', name: 'Cable Fly', groups: ['chest'], equip: 'Cable', sets: 3, reps: '10–15',
+      cues: ['Set both pulleys high. Step forward with a slight bend in your elbows.', 'Bring your hands together in front of your chest in a wide hugging arc.', 'Return slowly until you feel a stretch across your chest.'],
+      anim: {
+        view: 'front',
+        a: { hx: 100, hy: 118, ua: 75, fa: 60, th: 6, sh: 2 },
+        b: { hx: 100, hy: 118, ua: 35, fa: -75, th: 6, sh: 2 },
+        eq: [{ type: 'cable', px: 14, py: 30, at: 'hand' }, { type: 'cable', px: 186, py: 30, at: 'hand2' }],
+      },
+    },
+    {
+      id: 'chest-dip', name: 'Chest Dip', groups: ['chest', 'triceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '6–12',
+      cues: ['Support yourself on the bars with straight arms.', 'Lean your torso forward slightly and lower until your shoulders are just below your elbows.', 'Press back up to straight arms without shrugging.'],
+      anim: {
+        a: { hx: 98, hy: 100, t: 5, hand: [102, 101], ab: 'back', th: 10, sh: -60, toe: [72, 155] },
+        b: { hx: 92, hy: 124, t: 25, hand: [102, 101], ab: 'back', th: 10, sh: -60, toe: [66, 179] },
+        eq: [{ type: 'line', x1: 72, y1: 104, x2: 138, y2: 104, w: 4 }, { type: 'line', x1: 132, y1: 104, x2: 132, y2: 182, w: 3 }],
+      },
+    },
+    {
+      id: 'machine-chest-press', name: 'Machine Chest Press', groups: ['chest'], equip: 'Machine', sets: 3, reps: '10–12',
+      cues: ['Adjust the seat so the handles line up with your mid-chest.', 'Press forward until your arms are nearly straight.', 'Let the handles come back slowly without letting the stack touch down.'],
+      anim: {
+        a: { ...SEAT, t: -8, hand: [94, 106], ab: 'back' }, b: { ...SEAT, t: -8, hand: [131, 105], ab: 'back' },
+        eq: [...SEAT_EQ, { type: 'line', x1: 78, y1: 152, x2: 71, y2: 100, w: 6 }, { type: 'grip' }],
+      },
+    },
+
+    // ----------------------------------------------------------------- BACK
+    {
+      id: 'lat-pulldown', name: 'Lat Pulldown', groups: ['back', 'biceps'], equip: 'Cable', sets: 3, reps: '8–12',
+      cues: ['Grip the bar a little wider than shoulders and lock your knees under the pad.', 'Pull the bar to your upper chest, driving your elbows down toward your ribs.', 'Let it rise slowly until your arms are straight overhead.'],
+      anim: {
+        a: { ...SEAT, hx: 95, t: 0, ua: 175, fa: 178 }, b: { ...SEAT, hx: 95, t: -6, ua: -15, fa: 165 },
+        eq: [{ type: 'line', x1: 75, y1: 157, x2: 115, y2: 157, w: 6 }, { type: 'line', x1: 95, y1: 157, x2: 95, y2: 182, w: 3 }, { type: 'line', x1: 121, y1: 142, x2: 135, y2: 142, w: 5 }, { type: 'cable', px: 98, py: 16 }],
+      },
+    },
+    {
+      id: 'pull-up', name: 'Pull-Up', groups: ['back', 'biceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '5–10',
+      cues: ['Hang from the bar with hands slightly wider than shoulders.', 'Pull your chest toward the bar until your chin clears it.', 'Lower all the way to a full hang under control.'],
+      anim: {
+        a: { hx: 100, hy: 126, t: 0, hand: [103, 30], ab: 'fwd', th: 0, sh: -60 },
+        b: { hx: 100, hy: 92, t: 0, hand: [103, 30], ab: 'fwd', th: 10, sh: -60 },
+        eq: [{ type: 'line', x1: 55, y1: 29, x2: 145, y2: 29, w: 4 }],
+        period: 3000,
+      },
+    },
+    {
+      id: 'barbell-row', name: 'Bent-Over Barbell Row', groups: ['back'], equip: 'Barbell', sets: 3, reps: '6–10',
+      cues: ['Hinge at the hips until your torso is close to parallel, back flat.', 'Row the bar to your lower ribs, squeezing your shoulder blades together.', 'Lower to straight arms without letting your back round.'],
+      anim: { a: { ...HINGE, hand: [135, 156], ab: 'up' }, b: { ...HINGE, hand: [121, 121], ab: 'up' }, eq: [{ type: 'bb' }] },
+    },
+    {
+      id: 'db-row', name: 'One-Arm Dumbbell Row', groups: ['back'], equip: 'Dumbbell', sets: 3, reps: '8–12',
+      cues: ['Brace one hand on a bench, back flat, dumbbell hanging below your shoulder.', 'Pull the dumbbell toward your hip, keeping your elbow close to your body.', 'Lower to a full stretch. Do all reps, then switch sides.'],
+      anim: {
+        a: { ...HINGE, hand: [135, 156], ab: 'up', ua2: 10, fa2: 10 }, b: { ...HINGE, hand: [119, 121], ab: 'up', ua2: 10, fa2: 10 },
+        eq: [{ type: 'line', x1: 125, y1: 160, x2: 185, y2: 160, w: 6 }, { type: 'line', x1: 176, y1: 160, x2: 176, y2: 182, w: 3 }, { type: 'db', at: 'hand' }],
+      },
+    },
+    {
+      id: 'cable-row', name: 'Seated Cable Row', groups: ['back'], equip: 'Cable', sets: 3, reps: '10–12',
+      cues: ['Sit tall with a slight bend in your knees, arms reaching forward.', 'Pull the handle to your stomach, chest up, shoulders back.', 'Reach forward slowly to let your shoulder blades stretch apart.'],
+      anim: {
+        a: { hx: 70, hy: 160, t: 15, hand: [129, 119], ab: 'back', foot: [132, 166], lb: 'up' },
+        b: { hx: 70, hy: 160, t: -8, hand: [75, 128], ab: 'back', foot: [132, 166], lb: 'up' },
+        eq: [{ type: 'line', x1: 45, y1: 166, x2: 95, y2: 166, w: 6 }, { type: 'line', x1: 60, y1: 166, x2: 60, y2: 182, w: 3 }, { type: 'line', x1: 139, y1: 150, x2: 139, y2: 180, w: 4 }, { type: 'cable', px: 178, py: 120 }],
+      },
+    },
+    {
+      id: 'deadlift', name: 'Deadlift', groups: ['back', 'legs'], equip: 'Barbell', sets: 3, reps: '3–6',
+      cues: ['Bar over mid-foot. Hinge down and grip just outside your knees.', 'Brace hard, then push the floor away and stand up with the bar close to your legs.', 'Lock out by squeezing your glutes, then hinge back down with a flat back.'],
+      anim: {
+        a: { hx: 63, hy: 136, t: 68, hand: [106, 168], foot: [100, 182], foot2: [96, 182] },
+        b: { ...STAND, hand: [101, 121] },
+        eq: [{ type: 'bb' }], period: 3200,
+      },
+    },
+    {
+      id: 'straight-arm-pulldown', name: 'Straight-Arm Pulldown', groups: ['back'], equip: 'Cable', sets: 3, reps: '12–15',
+      cues: ['Face a high pulley, lean slightly forward, arms nearly straight.', 'Sweep the bar down in an arc to your thighs using your lats.', 'Let it rise back to eye level without bending your elbows more.'],
+      anim: {
+        a: { ...STAND, hx: 95, t: 15, ua: 135, fa: 135 }, b: { ...STAND, hx: 95, t: 15, ua: 5, fa: 5 },
+        eq: [{ type: 'cable', px: 168, py: 22 }],
+      },
+    },
+    {
+      id: 'face-pull', name: 'Face Pull', groups: ['back', 'shoulders'], equip: 'Cable', sets: 3, reps: '12–15',
+      cues: ['Set a rope at face height. Hold with thumbs pointing back toward you.', 'Pull the rope toward your forehead, elbows high and wide.', 'Pause, squeeze your upper back, and return slowly.'],
+      anim: {
+        a: { ...STAND, hx: 98, t: -5, ua: 85, fa: 88 }, b: { ...STAND, hx: 98, t: -5, ua: -80, fa: 170 },
+        eq: [{ type: 'cable', px: 182, py: 70 }],
+      },
+    },
+
+    // ------------------------------------------------------------ SHOULDERS
+    {
+      id: 'ohp', name: 'Overhead Press', groups: ['shoulders', 'triceps'], equip: 'Barbell', sets: 3, reps: '5–8',
+      cues: ['Start with the bar on your front shoulders, grip just outside shoulder width.', 'Squeeze your glutes and press the bar straight up, moving your head back out of the way.', 'Finish with the bar over your mid-foot, arms locked, then lower to your shoulders.'],
+      anim: { a: { ...STAND, ua: 25, fa: 175 }, b: { ...STAND, ua: 178, fa: 179 }, eq: [{ type: 'bb' }] },
+    },
+    {
+      id: 'db-shoulder-press', name: 'Dumbbell Shoulder Press', groups: ['shoulders', 'triceps'], equip: 'Dumbbell', sets: 3, reps: '8–12',
+      cues: ['Hold dumbbells at shoulder height, elbows slightly in front of your body.', 'Press up until your arms are straight and the dumbbells nearly touch.', 'Lower back to shoulder height under control.'],
+      anim: { view: 'front', a: { hx: 100, hy: 118, ua: 80, fa: 175 }, b: { hx: 100, hy: 118, ua: 165, fa: 185 }, eq: [{ type: 'db' }] },
+    },
+    {
+      id: 'lateral-raise', name: 'Lateral Raise', groups: ['shoulders'], equip: 'Dumbbell', sets: 3, reps: '12–15',
+      cues: ['Stand tall, dumbbells at your sides, a soft bend in your elbows.', 'Raise your arms out to the sides until they reach shoulder height.', 'Lower slowly. Lead with your elbows, not your hands.'],
+      anim: { view: 'front', a: { hx: 100, hy: 118, ua: 8, fa: 10 }, b: { hx: 100, hy: 118, ua: 85, fa: 92 }, eq: [{ type: 'db' }] },
+    },
+    {
+      id: 'front-raise', name: 'Front Raise', groups: ['shoulders'], equip: 'Dumbbell', sets: 3, reps: '10–15',
+      cues: ['Stand with dumbbells in front of your thighs.', 'Raise them in front of you to shoulder height with nearly straight arms.', 'Lower slowly without swinging your torso.'],
+      anim: { a: { ...STAND }, b: { ...STAND, ua: 95, fa: 95 }, eq: [{ type: 'db' }] },
+    },
+    {
+      id: 'rear-delt-fly', name: 'Rear Delt Fly', groups: ['shoulders', 'back'], equip: 'Dumbbell', sets: 3, reps: '12–15',
+      cues: ['Hinge forward with a flat back, dumbbells hanging below your chest.', 'Raise your arms out to the sides, leading with the backs of your hands.', 'Squeeze your rear shoulders at the top and lower slowly.'],
+      anim: { view: 'front', a: { hx: 100, hy: 122, tf: 0.3, ua: 4, fa: 4, th: 5, sh: -2 }, b: { hx: 100, hy: 122, tf: 0.3, ua: 84, fa: 92, th: 5, sh: -2 }, eq: [{ type: 'db' }] },
+    },
+    {
+      id: 'upright-row', name: 'Upright Row', groups: ['shoulders'], equip: 'Barbell', sets: 3, reps: '10–12',
+      cues: ['Hold the bar in front of your thighs, hands about shoulder-width.', 'Pull the bar up along your body, elbows leading out and up.', 'Stop around chest height and lower with control.'],
+      anim: { view: 'front', a: { hx: 100, hy: 118, ua: -6, fa: -8 }, b: { hx: 100, hy: 118, ua: 105, fa: -60 }, eq: [{ type: 'bb' }] },
+    },
+    {
+      id: 'shrug', name: 'Dumbbell Shrug', groups: ['shoulders', 'back'], equip: 'Dumbbell', sets: 3, reps: '12–15',
+      cues: ['Stand with heavy dumbbells at your sides.', 'Lift your shoulders straight up toward your ears.', 'Pause at the top, then lower slowly. Don\'t roll your shoulders.'],
+      anim: { view: 'front', a: { hx: 100, hy: 118, ua: 2, fa: 2, shr: 0 }, b: { hx: 100, hy: 118, ua: 2, fa: 2, shr: 7 }, eq: [{ type: 'db' }], period: 2000 },
+    },
+
+    // --------------------------------------------------------------- BICEPS
+    {
+      id: 'barbell-curl', name: 'Barbell Curl', groups: ['biceps'], equip: 'Barbell', sets: 3, reps: '8–12',
+      cues: ['Stand tall with the bar at your thighs, palms facing forward.', 'Curl the bar up while keeping your elbows pinned at your sides.', 'Lower all the way down without swinging your back.'],
+      anim: { a: { ...STAND }, b: { ...STAND, ua: 8, fa: 145 }, eq: [{ type: 'bb' }] },
+    },
+    {
+      id: 'db-curl', name: 'Dumbbell Curl', groups: ['biceps'], equip: 'Dumbbell', sets: 3, reps: '8–12',
+      cues: ['Hold dumbbells at your sides, palms facing forward.', 'Curl up, keeping your upper arms still, and squeeze at the top.', 'Lower slowly to a full stretch.'],
+      anim: { a: { ...STAND }, b: { ...STAND, ua: 8, fa: 145 }, eq: [{ type: 'db' }] },
+    },
+    {
+      id: 'hammer-curl', name: 'Hammer Curl', groups: ['biceps'], equip: 'Dumbbell', sets: 3, reps: '10–12',
+      cues: ['Hold dumbbells at your sides with palms facing each other.', 'Curl up keeping that neutral grip the whole way.', 'Lower under control. Works the forearms as well as biceps.'],
+      anim: { a: { ...STAND }, b: { ...STAND, ua: 5, fa: 140 }, eq: [{ type: 'db' }] },
+    },
+    {
+      id: 'preacher-curl', name: 'Preacher Curl', groups: ['biceps'], equip: 'Barbell', sets: 3, reps: '8–12',
+      cues: ['Sit with the backs of your upper arms flat on the pad.', 'Curl the bar up until your forearms are nearly vertical.', 'Lower slowly. Don\'t let your elbows lift off the pad.'],
+      anim: {
+        a: { hx: 85, hy: 150, t: 10, th: 90, sh: 0, ua: 50, fa: 55 }, b: { hx: 85, hy: 150, t: 10, th: 90, sh: 0, ua: 50, fa: 165 },
+        eq: [{ type: 'line', x1: 101, y1: 128, x2: 124, y2: 141, w: 6 }, { type: 'line', x1: 116, y1: 140, x2: 116, y2: 182, w: 3 }, { type: 'line', x1: 66, y1: 157, x2: 102, y2: 157, w: 6 }, { type: 'bb' }],
+      },
+    },
+    {
+      id: 'cable-curl', name: 'Cable Curl', groups: ['biceps'], equip: 'Cable', sets: 3, reps: '10–15',
+      cues: ['Face a low pulley holding a straight bar, palms up.', 'Curl the bar to your chest while keeping your elbows by your sides.', 'Lower slowly — the cable keeps tension all the way down.'],
+      anim: { a: { ...STAND }, b: { ...STAND, ua: 8, fa: 145 }, eq: [{ type: 'cable', px: 150, py: 176 }] },
+    },
+    {
+      id: 'incline-db-curl', name: 'Incline Dumbbell Curl', groups: ['biceps'], equip: 'Dumbbell', sets: 3, reps: '10–12',
+      cues: ['Lie back on a bench set to about 45°, arms hanging straight down.', 'Curl both dumbbells without letting your elbows drift forward.', 'Lower to a full stretch at the bottom.'],
+      anim: {
+        a: { hx: 95, hy: 150, t: -40, th: 90, sh: 0, ua: -2, fa: -2 }, b: { hx: 95, hy: 150, t: -40, th: 90, sh: 0, ua: 5, fa: 140 },
+        eq: [{ type: 'line', x1: 90, y1: 157, x2: 54, y2: 113, w: 6 }, { type: 'line', x1: 80, y1: 157, x2: 118, y2: 157, w: 6 }, { type: 'line', x1: 95, y1: 157, x2: 95, y2: 182, w: 3 }, { type: 'db' }],
+      },
+    },
+    {
+      id: 'concentration-curl', name: 'Concentration Curl', groups: ['biceps'], equip: 'Dumbbell', sets: 3, reps: '10–12',
+      cues: ['Sit on a bench, lean forward and brace your elbow against your inner thigh.', 'Curl the dumbbell toward your shoulder, keeping your upper arm still.', 'Lower all the way down, then switch arms after your reps.'],
+      anim: {
+        a: { hx: 90, hy: 150, t: 35, th: 90, sh: 0, ua: 10, fa: 10, ua2: 40, fa2: 60 }, b: { hx: 90, hy: 150, t: 35, th: 90, sh: 0, ua: 10, fa: 150, ua2: 40, fa2: 60 },
+        eq: [...SEAT_EQ, { type: 'db', at: 'hand' }],
+      },
+    },
+
+    // -------------------------------------------------------------- TRICEPS
+    {
+      id: 'tricep-pushdown', name: 'Tricep Pushdown', groups: ['triceps'], equip: 'Cable', sets: 3, reps: '10–15',
+      cues: ['Face a high pulley, elbows tucked at your sides.', 'Push the bar or rope down until your arms are fully straight.', 'Let it come back up to about chest height, keeping your elbows still.'],
+      anim: { a: { ...STAND, t: 10, ua: 5, fa: 95 }, b: { ...STAND, t: 10, ua: 5, fa: 5 }, eq: [{ type: 'cable', px: 132, py: 16 }] },
+    },
+    {
+      id: 'skull-crusher', name: 'Skull Crusher', groups: ['triceps'], equip: 'Barbell', sets: 3, reps: '8–12',
+      cues: ['Lie on a bench holding the bar over your chest with straight arms.', 'Bend only at the elbows, lowering the bar toward your forehead.', 'Straighten your arms to press it back up. Keep your upper arms still.'],
+      anim: { a: { ...LIE, ua: 162, fa: 162 }, b: { ...LIE, ua: 162, fa: 55 }, eq: [...BENCH, { type: 'bb' }] },
+    },
+    {
+      id: 'overhead-extension', name: 'Overhead Tricep Extension', groups: ['triceps'], equip: 'Dumbbell', sets: 3, reps: '10–12',
+      cues: ['Hold one dumbbell overhead with both hands, arms straight.', 'Lower it behind your head by bending at the elbows.', 'Extend back up. Keep your elbows pointing forward, not flaring out.'],
+      anim: { a: { ...STAND, ua: 175, fa: 178 }, b: { ...STAND, ua: 175, fa: 335 }, eq: [{ type: 'db', at: 'hand' }] },
+    },
+    {
+      id: 'close-grip-bench', name: 'Close-Grip Bench Press', groups: ['triceps', 'chest'], equip: 'Barbell', sets: 3, reps: '6–10',
+      cues: ['Grip the bar about shoulder-width apart.', 'Lower to your lower chest with elbows tucked close to your body.', 'Press up, focusing on straightening your arms.'],
+      anim: { a: { ...LIE, ua: 180, fa: 180 }, b: { ...LIE, ua: 295, fa: 172 }, eq: [...BENCH, { type: 'bb' }] },
+    },
+    {
+      id: 'bench-dip', name: 'Bench Dip', groups: ['triceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '10–15',
+      cues: ['Hands on the edge of a bench behind you, legs out in front.', 'Lower your hips by bending your elbows to about 90°.', 'Press back up until your arms are straight.'],
+      anim: {
+        a: { hx: 100, hy: 138, t: 0, hand: [78, 138], ab: 'back', foot: [150, 182], lb: 'up' },
+        b: { hx: 102, hy: 160, t: 5, hand: [78, 138], ab: 'back', foot: [150, 182], lb: 'up' },
+        eq: [{ type: 'line', x1: 52, y1: 141, x2: 84, y2: 141, w: 6 }, { type: 'line', x1: 58, y1: 141, x2: 58, y2: 182, w: 3 }],
+      },
+    },
+    {
+      id: 'kickback', name: 'Dumbbell Kickback', groups: ['triceps'], equip: 'Dumbbell', sets: 3, reps: '12–15',
+      cues: ['Hinge forward, upper arm tight against your side and parallel to the floor.', 'Straighten your elbow to push the dumbbell back.', 'Squeeze at the top, then let your forearm swing back down slowly.'],
+      anim: { a: { ...HINGE, ua: -62, fa: 0 }, b: { ...HINGE, ua: -62, fa: -64 }, eq: [{ type: 'db' }] },
+    },
+
+    // ----------------------------------------------------------------- LEGS
+    {
+      id: 'back-squat', name: 'Back Squat', groups: ['legs'], equip: 'Barbell', sets: 3, reps: '5–8',
+      cues: ['Bar across your upper back, feet shoulder-width, toes slightly out.', 'Sit down and back, knees tracking over your toes, chest up.', 'Go to at least parallel, then drive up through your whole foot.'],
+      anim: {
+        a: { hx: 100, hy: 118, t: 0, handT: [-5, 3], ab: 'down', foot: [102, 182], foot2: [98, 182] },
+        b: { hx: 76, hy: 150, t: 42, handT: [-5, 3], ab: 'down', foot: [102, 182], foot2: [98, 182] },
+        eq: [{ type: 'bb' }], period: 3000,
+      },
+    },
+    {
+      id: 'goblet-squat', name: 'Goblet Squat', groups: ['legs'], equip: 'Dumbbell', sets: 3, reps: '10–12',
+      cues: ['Hold one dumbbell vertically against your chest.', 'Squat down between your heels, elbows brushing the inside of your knees.', 'Keep your chest tall and stand back up.'],
+      anim: {
+        a: { hx: 100, hy: 118, t: 0, handT: [12, -14], ab: 'down', foot: [102, 182], foot2: [98, 182] },
+        b: { hx: 80, hy: 152, t: 25, handT: [12, -14], ab: 'down', foot: [102, 182], foot2: [98, 182] },
+        eq: [{ type: 'db', at: 'hand' }], period: 3000,
+      },
+    },
+    {
+      id: 'rdl', name: 'Romanian Deadlift', groups: ['legs', 'back'], equip: 'Barbell', sets: 3, reps: '8–10',
+      cues: ['Stand holding the bar, knees softly bent.', 'Push your hips back and slide the bar down your thighs, back flat.', 'Stop when you feel a strong hamstring stretch, then drive your hips forward to stand.'],
+      anim: { a: { ...STAND }, b: { hx: 82, hy: 122, t: 75, ua: 0, fa: 0, foot: [102, 182], foot2: [98, 182] }, eq: [{ type: 'bb' }], period: 3000 },
+    },
+    {
+      id: 'leg-press', name: 'Leg Press', groups: ['legs'], equip: 'Machine', sets: 3, reps: '10–12',
+      cues: ['Sit back with your feet shoulder-width on the platform.', 'Lower the sled until your knees reach about 90°, lower back flat on the pad.', 'Press back up without locking your knees hard.'],
+      anim: {
+        a: { hx: 70, hy: 150, t: -45, hand: [80, 160], ab: 'down', foot: [98, 120], lb: 'up' },
+        b: { hx: 70, hy: 150, t: -45, hand: [80, 160], ab: 'down', foot: [122, 104], lb: 'up' },
+        eq: [{ type: 'line', x1: 67, y1: 156, x2: 33, y2: 122, w: 6 }, { type: 'line', x1: 64, y1: 158, x2: 92, y2: 158, w: 6 }, { type: 'line', x1: 74, y1: 158, x2: 74, y2: 182, w: 3 }, { type: 'footplate' }],
+      },
+    },
+    {
+      id: 'walking-lunge', name: 'Walking Lunge', groups: ['legs'], equip: 'Dumbbell', sets: 3, reps: '10/leg',
+      cues: ['Hold dumbbells at your sides and take a long step forward.', 'Lower until your back knee nearly touches the floor, front shin vertical.', 'Push through your front heel and step through into the next lunge.'],
+      anim: {
+        a: { hx: 95, hy: 124, t: 0, ua: 0, fa: 0, foot: [122, 182], foot2: [68, 182], lb2: 'down' },
+        b: { hx: 93, hy: 150, t: 5, ua: 0, fa: 0, foot: [122, 182], foot2: [68, 182], lb2: 'down' },
+        eq: [{ type: 'db' }],
+      },
+    },
+    {
+      id: 'bulgarian-split-squat', name: 'Bulgarian Split Squat', groups: ['legs'], equip: 'Dumbbell', sets: 3, reps: '8/leg',
+      cues: ['Rest the top of your back foot on a bench, front foot well forward.', 'Drop your back knee straight down toward the floor.', 'Drive through your front foot to stand. Finish one leg, then switch.'],
+      anim: {
+        a: { hx: 92, hy: 122, t: 5, ua: 0, fa: 0, foot: [118, 182], foot2: [52, 147], lb2: 'down' },
+        b: { hx: 88, hy: 148, t: 10, ua: 0, fa: 0, foot: [118, 182], foot2: [52, 147], lb2: 'down' },
+        eq: [{ type: 'line', x1: 30, y1: 152, x2: 62, y2: 152, w: 6 }, { type: 'line', x1: 40, y1: 152, x2: 40, y2: 182, w: 3 }, { type: 'db' }],
+      },
+    },
+    {
+      id: 'leg-extension', name: 'Leg Extension', groups: ['legs'], equip: 'Machine', sets: 3, reps: '12–15',
+      cues: ['Sit with the pad on your lower shins, knees lined up with the machine\'s pivot.', 'Straighten your legs fully and squeeze your quads.', 'Lower slowly back to about 90°.'],
+      anim: {
+        a: { hx: 85, hy: 140, t: -8, th: 90, sh: 5, hand: [90, 146], ab: 'down' }, b: { hx: 85, hy: 140, t: -8, th: 90, sh: 88, hand: [90, 146], ab: 'down' },
+        eq: [{ type: 'line', x1: 66, y1: 147, x2: 115, y2: 147, w: 6 }, { type: 'line', x1: 72, y1: 147, x2: 66, y2: 96, w: 6 }, { type: 'line', x1: 88, y1: 147, x2: 88, y2: 182, w: 3 }, { type: 'roller' }],
+      },
+    },
+    {
+      id: 'leg-curl', name: 'Seated Leg Curl', groups: ['legs'], equip: 'Machine', sets: 3, reps: '10–15',
+      cues: ['Sit with the pad behind your lower calves and the thigh pad snug.', 'Pull your heels down and back as far as you can.', 'Return slowly to straight legs.'],
+      anim: {
+        a: { hx: 85, hy: 140, t: -8, th: 90, sh: 88, hand: [90, 146], ab: 'down' }, b: { hx: 85, hy: 140, t: -8, th: 90, sh: -5, hand: [90, 146], ab: 'down' },
+        eq: [{ type: 'line', x1: 66, y1: 147, x2: 115, y2: 147, w: 6 }, { type: 'line', x1: 72, y1: 147, x2: 66, y2: 96, w: 6 }, { type: 'line', x1: 88, y1: 147, x2: 88, y2: 182, w: 3 }, { type: 'roller' }],
+      },
+    },
+    {
+      id: 'hip-thrust', name: 'Hip Thrust', groups: ['legs'], equip: 'Barbell', sets: 3, reps: '8–12',
+      cues: ['Upper back against a bench, bar across your hips, feet flat.', 'Drive your hips up until your body is straight from shoulders to knees.', 'Squeeze your glutes at the top, then lower with control.'],
+      anim: {
+        a: { hx: 95, hy: 168, sTo: [58, 142], hand: [95, 159], ab: 'up', foot: [128, 182], lb: 'up' },
+        b: { hx: 98, hy: 140, sTo: [58, 142], hand: [98, 131], ab: 'up', foot: [128, 182], lb: 'up' },
+        eq: [{ type: 'line', x1: 18, y1: 150, x2: 60, y2: 150, w: 6 }, { type: 'line', x1: 30, y1: 150, x2: 30, y2: 182, w: 3 }, { type: 'bb', at: 'hip' }],
+      },
+    },
+    {
+      id: 'calf-raise', name: 'Standing Calf Raise', groups: ['legs'], equip: 'Dumbbell', sets: 3, reps: '12–20',
+      cues: ['Stand tall holding dumbbells, balls of your feet on the floor or a step.', 'Rise up as high as you can onto your toes.', 'Pause, then lower your heels slowly for a full stretch.'],
+      anim: {
+        a: { ...STAND, toe: [111, 182], toe2: [107, 182] },
+        b: { ...STAND, hx: 101, hy: 109, foot: [103, 173], foot2: [99, 173], toe: [111, 182], toe2: [107, 182] },
+        eq: [{ type: 'db' }], period: 2200,
+      },
+    },
+
+    // ----------------------------------------------------------------- CORE
+    {
+      id: 'plank', name: 'Plank', groups: ['core'], equip: 'Bodyweight', bw: true, timed: true, sets: 3, reps: '30–60 sec',
+      cues: ['Forearms on the floor, elbows under your shoulders.', 'Lift your body into a straight line, squeezing your glutes and abs.', 'Breathe steadily and hold. Don\'t let your hips sag or pike up.'],
+      anim: {
+        a: { hx: 100, hy: 166, t: 80, hand: [168, 181], ab: 'down', foot: [40, 175], toe: [44, 182] },
+        b: { hx: 100, hy: 163, t: 80, hand: [168, 181], ab: 'down', foot: [40, 175], toe: [44, 182] },
+        period: 4000,
+      },
+    },
+    {
+      id: 'crunch', name: 'Crunch', groups: ['core'], equip: 'Bodyweight', bw: true, sets: 3, reps: '15–20',
+      cues: ['Lie on your back with knees bent and feet flat.', 'Curl your shoulders off the floor by tightening your abs.', 'Lower slowly. Keep your neck relaxed and chin off your chest.'],
+      anim: {
+        a: { hx: 100, hy: 172, t: -90, rel: true, ua: 15, fa: 15, foot: [138, 181], lb: 'up' },
+        b: { hx: 100, hy: 172, t: -62, rel: true, ua: 25, fa: 25, foot: [138, 181], lb: 'up' },
+        period: 2200,
+      },
+    },
+    {
+      id: 'hanging-leg-raise', name: 'Hanging Leg Raise', groups: ['core'], equip: 'Bodyweight', bw: true, sets: 3, reps: '8–15',
+      cues: ['Hang from a pull-up bar with straight arms.', 'Raise your legs in front of you to hip height or higher without swinging.', 'Lower them slowly. Bend your knees to make it easier.'],
+      anim: {
+        a: { hx: 100, hy: 118, t: 0, hand: [102, 22], ab: 'fwd', th: 0, sh: -20 },
+        b: { hx: 100, hy: 118, t: -5, hand: [102, 22], ab: 'fwd', th: 92, sh: 95 },
+        eq: [{ type: 'line', x1: 55, y1: 21, x2: 145, y2: 21, w: 4 }], period: 3000,
+      },
+    },
+    {
+      id: 'lying-leg-raise', name: 'Lying Leg Raise', groups: ['core'], equip: 'Bodyweight', bw: true, sets: 3, reps: '10–15',
+      cues: ['Lie flat with legs straight and hands at your sides.', 'Raise your legs until they point at the ceiling, lower back pressed down.', 'Lower slowly, stopping just before your heels touch the floor.'],
+      anim: {
+        a: { hx: 100, hy: 176, t: -90, rel: true, ua: 0, fa: 0, th: 88, sh: 88 },
+        b: { hx: 100, hy: 176, t: -90, rel: true, ua: 0, fa: 0, th: 175, sh: 178 },
+        period: 3000,
+      },
+    },
+    {
+      id: 'cable-crunch', name: 'Cable Crunch', groups: ['core'], equip: 'Cable', sets: 3, reps: '12–15',
+      cues: ['Kneel facing a high pulley, holding the rope beside your head.', 'Crunch down by curling your ribs toward your hips.', 'Return slowly. Your hips should stay still — the movement is in your spine.'],
+      anim: {
+        a: { hx: 100, hy: 150, t: 15, handT: [8, 10], ab: 'down', th: 0, sh: -90, toe: [59, 182] },
+        b: { hx: 100, hy: 150, t: 75, handT: [8, 10], ab: 'down', th: 0, sh: -90, toe: [59, 182] },
+        eq: [{ type: 'cable', px: 152, py: 16 }],
+      },
+    },
+    {
+      id: 'dead-bug', name: 'Dead Bug', groups: ['core'], equip: 'Bodyweight', bw: true, sets: 3, reps: '8/side',
+      cues: ['Lie on your back, arms pointing up, knees bent at 90° over your hips.', 'Slowly lower one arm overhead and the opposite leg toward the floor.', 'Keep your lower back pressed down. Return and switch sides.'],
+      anim: {
+        a: { hx: 100, hy: 172, t: -90, ua: 180, fa: 180, th: 180, sh: 90 },
+        b: { hx: 100, hy: 172, t: -90, ua: 265, fa: 265, th: 98, sh: 96, ua2: 180, fa2: 180, th2: 180, sh2: 90 },
+        period: 3200,
+      },
+    },
+    {
+      id: 'mountain-climber', name: 'Mountain Climber', groups: ['core'], equip: 'Bodyweight', bw: true, sets: 3, reps: '20–30',
+      cues: ['Start at the top of a push-up, hands under shoulders.', 'Drive one knee toward your chest, then switch legs quickly.', 'Keep your hips low and your shoulders over your hands.'],
+      anim: {
+        a: { ...PUSHUP_A, foot2: [40, 175], toe2: [44, 182] },
+        b: { ...PUSHUP_A, foot: [104, 172], toe: [110, 176], foot2: [40, 175], toe2: [44, 182] },
+        period: 1400,
+      },
+    },
+  ];
+
+  // ---- equipment alternatives (reuse an existing diagram) ----------------
+  // These give Swap somewhere to go when you're missing a piece of equipment.
+  const base = (id) => EX.find((e) => e.id === id).anim;
+  const swapEq = (eq, from, to) => (eq || []).map((e) => (e.type === from ? { ...e, ...to } : e));
+  EX.push(
+    {
+      id: 'incline-bb-press', name: 'Incline Barbell Press', groups: ['chest', 'shoulders'], equip: 'Barbell', sets: 3, reps: '6–10',
+      cues: ['Set the bench to 30–45° and unrack with hands just wider than shoulders.', 'Lower the bar to your upper chest, elbows slightly tucked.', 'Press back up over your shoulders without arching off the bench.'],
+      anim: { ...base('incline-db-press'), eq: swapEq(base('incline-db-press').eq, 'db', { type: 'bb' }) },
+    },
+    {
+      id: 'pec-deck', name: 'Pec Deck Fly', groups: ['chest'], equip: 'Machine', sets: 3, reps: '10–15',
+      cues: ['Sit tall with your back on the pad and the handles level with your chest.', 'Squeeze the handles together in front of you in a wide hugging arc.', 'Let them open slowly until you feel a stretch across your chest.'],
+      anim: { ...base('cable-fly'), eq: [] },
+    },
+    {
+      id: 'machine-row', name: 'Machine Row', groups: ['back'], equip: 'Machine', sets: 3, reps: '10–12',
+      cues: ['Sit with your chest against the pad and grab the handles with straight arms.', 'Pull the handles to your sides, squeezing your shoulder blades together.', 'Let your arms straighten slowly without leaning back.'],
+      anim: { ...base('cable-row'), eq: [...base('cable-row').eq.filter((e) => e.type === 'line'), { type: 'grip' }] },
+    },
+    {
+      id: 'chin-up', name: 'Chin-Up', groups: ['back', 'biceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '5–10',
+      cues: ['Hang from the bar with palms facing you, hands shoulder-width apart.', 'Pull your chest toward the bar until your chin clears it.', 'Lower all the way to a full hang under control.'],
+      anim: base('pull-up'),
+    },
+    {
+      id: 'machine-shoulder-press', name: 'Machine Shoulder Press', groups: ['shoulders', 'triceps'], equip: 'Machine', sets: 3, reps: '8–12',
+      cues: ['Set the seat so the handles start at about shoulder height.', 'Press straight up until your arms are nearly locked.', 'Lower slowly back to shoulder height.'],
+      anim: { a: { ...SEAT, t: -6, ua: 25, fa: 175 }, b: { ...SEAT, t: -6, ua: 178, fa: 179 }, eq: [...SEAT_EQ, { type: 'line', x1: 78, y1: 152, x2: 73, y2: 100, w: 6 }, { type: 'grip' }] },
+    },
+    {
+      id: 'cable-lateral-raise', name: 'Cable Lateral Raise', groups: ['shoulders'], equip: 'Cable', sets: 3, reps: '12–15',
+      cues: ['Stand side-on to a low pulley and take the handle in your far hand.', 'Raise your arm out to the side until it is level with your shoulder.', 'Lower slowly. Do all reps, then switch sides.'],
+      anim: { ...base('lateral-raise'), eq: [{ type: 'cable', px: 150, py: 178, at: 'hand' }] },
+    },
+    {
+      id: 'diamond-push-up', name: 'Diamond Push-Up', groups: ['triceps', 'chest'], equip: 'Bodyweight', bw: true, sets: 3, reps: '8–15',
+      cues: ['Hands together under your chest, thumbs and index fingers touching.', 'Lower your chest toward your hands, elbows close to your sides.', 'Push back up to straight arms with your body in one line.'],
+      anim: base('push-up'),
+    },
+    {
+      id: 'cable-overhead-extension', name: 'Cable Overhead Extension', groups: ['triceps'], equip: 'Cable', sets: 3, reps: '10–15',
+      cues: ['Face away from a low pulley holding the rope behind your head.', 'Straighten your arms overhead, keeping your elbows pointing forward.', 'Lower slowly behind your head for a deep stretch.'],
+      anim: { ...base('overhead-extension'), eq: [{ type: 'cable', px: 40, py: 176, at: 'hand' }] },
+    },
+    {
+      id: 'db-skull-crusher', name: 'Dumbbell Skull Crusher', groups: ['triceps'], equip: 'Dumbbell', sets: 3, reps: '8–12',
+      cues: ['Lie on a bench holding dumbbells over your chest, palms facing in.', 'Bend only at the elbows to lower the weights beside your head.', 'Straighten your arms back up without letting the elbows flare.'],
+      anim: { ...base('skull-crusher'), eq: swapEq(base('skull-crusher').eq, 'bb', { type: 'db' }) },
+    },
+    {
+      id: 'db-rdl', name: 'Dumbbell Romanian Deadlift', groups: ['legs', 'back'], equip: 'Dumbbell', sets: 3, reps: '8–12',
+      cues: ['Stand tall with dumbbells in front of your thighs, knees slightly bent.', 'Push your hips back and slide the weights down your legs, back flat.', 'Stop at a strong hamstring stretch, then drive your hips forward to stand.'],
+      anim: { ...base('rdl'), eq: [{ type: 'db' }] },
+    },
+    {
+      id: 'db-bent-row', name: 'Dumbbell Bent-Over Row', groups: ['back'], equip: 'Dumbbell', sets: 3, reps: '8–12',
+      cues: ['Hold a dumbbell in each hand and hinge forward until your torso is close to parallel, back flat.', 'Row both dumbbells to your lower ribs, squeezing your shoulder blades together.', 'Lower to straight arms without letting your back round.'],
+      anim: { ...base('barbell-row'), eq: [{ type: 'db' }] },
+    },
+    {
+      id: 'db-pullover', name: 'Dumbbell Pullover', groups: ['chest', 'back'], equip: 'Dumbbell', sets: 3, reps: '10–12',
+      cues: ['Lie on the bench holding one dumbbell over your chest with both hands.', 'Keep a slight bend in your elbows and lower the weight back behind your head until your arms are in line with your body.', 'Pull it back over your chest using your chest and lats, not your elbows.'],
+      anim: { a: { ...LIE, ua: 178, fa: 172 }, b: { ...LIE, ua: 98, fa: 92 }, eq: [...BENCH, { type: 'db', at: 'hand' }] },
+    },
+    {
+      id: 'glute-bridge', name: 'Glute Bridge', groups: ['legs'], equip: 'Bodyweight', bw: true, sets: 3, reps: '12–20',
+      cues: ['Lie on your back, knees bent and feet flat about hip-width apart.', 'Squeeze your glutes to lift your hips until your body is straight from knees to shoulders.', 'Pause at the top, then lower slowly.'],
+      anim: {
+        a: { hx: 95, hy: 175, sTo: [52, 176], hand: [97, 180], ab: 'up', foot: [128, 182], lb: 'up' },
+        b: { hx: 98, hy: 152, sTo: [52, 176], hand: [97, 180], ab: 'up', foot: [128, 182], lb: 'up' },
+      },
+    },
+    {
+      id: 'bw-calf-raise', name: 'Bodyweight Calf Raise', groups: ['legs'], equip: 'Bodyweight', bw: true, sets: 3, reps: '15–25',
+      cues: ['Stand with the balls of your feet on a step, holding something for balance.', 'Rise as high as you can onto your toes.', 'Lower your heels below the step for a full stretch.'],
+      anim: { ...base('calf-raise'), eq: [] },
+    },
+  );
+
+  window.GROUPS = GROUPS;
+  window.EXERCISES = EX;
+})();
+
+</script>
+  <script>
+/* ===== muscles.js ===== */
+// Muscle areas, what each lift works (1 = main target, .5 = helps, .25 = a little),
+// and a front/back body heatmap.
+(function () {
+  const AREAS = {
+    'chest-upper': 'Upper chest', 'chest-mid': 'Mid chest', 'chest-lower': 'Lower chest',
+    'delt-front': 'Front delts', 'delt-side': 'Side delts', 'delt-rear': 'Rear delts',
+    lats: 'Lats', 'upper-back': 'Upper back', traps: 'Traps', 'lower-back': 'Lower back',
+    biceps: 'Biceps', brachialis: 'Brachialis', forearms: 'Forearms',
+    'tri-long': 'Triceps long head', 'tri-lat': 'Triceps outer heads',
+    quads: 'Quads', hamstrings: 'Hamstrings', glutes: 'Glutes', calves: 'Calves',
+    'abs-upper': 'Upper abs', 'abs-lower': 'Lower abs', obliques: 'Obliques',
+  };
+
+  // The areas that make up "a full workout" for each muscle group.
+  const GROUP_AREAS = {
+    chest: ['chest-upper', 'chest-mid', 'chest-lower'],
+    back: ['lats', 'upper-back', 'traps', 'lower-back'],
+    shoulders: ['delt-front', 'delt-side', 'delt-rear'],
+    biceps: ['biceps', 'brachialis', 'forearms'],
+    triceps: ['tri-long', 'tri-lat'],
+    legs: ['quads', 'hamstrings', 'glutes', 'calves'],
+    core: ['abs-upper', 'abs-lower', 'obliques'],
+  };
+
+  const T = {
+    'bench-press': { 'chest-mid': 1, 'chest-upper': .5, 'chest-lower': .5, 'delt-front': .5, 'tri-lat': .5, 'tri-long': .25 },
+    'incline-db-press': { 'chest-upper': 1, 'chest-mid': .5, 'delt-front': .5, 'tri-lat': .25 },
+    'db-bench': { 'chest-mid': 1, 'chest-upper': .5, 'chest-lower': .5, 'delt-front': .5, 'tri-lat': .25 },
+    'push-up': { 'chest-mid': 1, 'chest-lower': .5, 'delt-front': .5, 'tri-lat': .5, 'abs-upper': .25 },
+    'cable-fly': { 'chest-mid': 1, 'chest-lower': .5, 'chest-upper': .25, 'delt-front': .25 },
+    'chest-dip': { 'chest-lower': 1, 'tri-lat': .5, 'tri-long': .5, 'delt-front': .5 },
+    'machine-chest-press': { 'chest-mid': 1, 'chest-upper': .5, 'chest-lower': .5, 'delt-front': .25, 'tri-lat': .25 },
+    'lat-pulldown': { lats: 1, 'upper-back': .5, biceps: .5, 'delt-rear': .25, brachialis: .25 },
+    'pull-up': { lats: 1, 'upper-back': .5, biceps: .5, brachialis: .5, forearms: .25, 'abs-lower': .25 },
+    'barbell-row': { 'upper-back': 1, lats: .5, 'delt-rear': .5, 'lower-back': .5, traps: .25, biceps: .25, hamstrings: .25 },
+    'db-row': { lats: 1, 'upper-back': .5, 'delt-rear': .5, biceps: .25 },
+    'cable-row': { 'upper-back': 1, lats: .5, 'delt-rear': .5, traps: .25, biceps: .25 },
+    deadlift: { 'lower-back': 1, glutes: 1, hamstrings: 1, traps: .5, quads: .5, 'upper-back': .5, forearms: .5 },
+    'straight-arm-pulldown': { lats: 1, 'tri-long': .25, 'abs-upper': .25 },
+    'face-pull': { 'delt-rear': 1, 'upper-back': 1, traps: .5 },
+    ohp: { 'delt-front': 1, 'delt-side': .5, 'tri-lat': .5, 'tri-long': .25, 'chest-upper': .25, traps: .25 },
+    'db-shoulder-press': { 'delt-front': 1, 'delt-side': .5, 'tri-lat': .5, traps: .25 },
+    'lateral-raise': { 'delt-side': 1, 'delt-front': .25, traps: .25 },
+    'front-raise': { 'delt-front': 1, 'delt-side': .25, 'chest-upper': .25 },
+    'rear-delt-fly': { 'delt-rear': 1, 'upper-back': .5, traps: .25 },
+    'upright-row': { 'delt-side': 1, traps: 1, 'delt-front': .25, biceps: .25 },
+    shrug: { traps: 1, forearms: .25 },
+    'barbell-curl': { biceps: 1, brachialis: .5, forearms: .25 },
+    'db-curl': { biceps: 1, brachialis: .5, forearms: .25 },
+    'hammer-curl': { brachialis: 1, forearms: 1, biceps: .5 },
+    'preacher-curl': { biceps: 1, brachialis: .5 },
+    'cable-curl': { biceps: 1, brachialis: .5, forearms: .25 },
+    'incline-db-curl': { biceps: 1, brachialis: .25 },
+    'concentration-curl': { biceps: 1, brachialis: .5 },
+    'tricep-pushdown': { 'tri-lat': 1, 'tri-long': .5 },
+    'skull-crusher': { 'tri-long': 1, 'tri-lat': .5 },
+    'overhead-extension': { 'tri-long': 1, 'tri-lat': .25 },
+    'close-grip-bench': { 'tri-lat': 1, 'tri-long': .5, 'chest-mid': .5, 'delt-front': .5 },
+    'bench-dip': { 'tri-lat': 1, 'tri-long': .5, 'delt-front': .5, 'chest-lower': .25 },
+    kickback: { 'tri-lat': 1, 'tri-long': .5 },
+    'back-squat': { quads: 1, glutes: 1, 'lower-back': .5, hamstrings: .25, 'abs-upper': .25 },
+    'goblet-squat': { quads: 1, glutes: .5, 'abs-upper': .25 },
+    rdl: { hamstrings: 1, glutes: 1, 'lower-back': .5, forearms: .25, traps: .25 },
+    'leg-press': { quads: 1, glutes: .5, hamstrings: .25 },
+    'walking-lunge': { quads: 1, glutes: 1, hamstrings: .25, calves: .25 },
+    'bulgarian-split-squat': { quads: 1, glutes: 1, hamstrings: .25 },
+    'leg-extension': { quads: 1 },
+    'leg-curl': { hamstrings: 1, calves: .25 },
+    'hip-thrust': { glutes: 1, hamstrings: .5, quads: .25 },
+    'calf-raise': { calves: 1 },
+    plank: { 'abs-upper': 1, 'abs-lower': .5, obliques: .5, 'delt-front': .25 },
+    crunch: { 'abs-upper': 1, obliques: .25 },
+    'hanging-leg-raise': { 'abs-lower': 1, 'abs-upper': .5, obliques: .5, forearms: .5 },
+    'lying-leg-raise': { 'abs-lower': 1, 'abs-upper': .25 },
+    'cable-crunch': { 'abs-upper': 1, 'abs-lower': .5, obliques: .25 },
+    'dead-bug': { 'abs-lower': 1, 'abs-upper': .5, obliques: .5 },
+    'incline-bb-press': { 'chest-upper': 1, 'chest-mid': .5, 'delt-front': .5, 'tri-lat': .25 },
+    'pec-deck': { 'chest-mid': 1, 'chest-lower': .25, 'chest-upper': .25, 'delt-front': .25 },
+    'machine-row': { 'upper-back': 1, lats: .5, 'delt-rear': .5, biceps: .25 },
+    'chin-up': { lats: 1, biceps: 1, 'upper-back': .5, brachialis: .5, forearms: .25 },
+    'machine-shoulder-press': { 'delt-front': 1, 'delt-side': .5, 'tri-lat': .5 },
+    'cable-lateral-raise': { 'delt-side': 1, 'delt-front': .25, traps: .25 },
+    'diamond-push-up': { 'tri-lat': 1, 'tri-long': .5, 'chest-mid': .5, 'delt-front': .5 },
+    'cable-overhead-extension': { 'tri-long': 1, 'tri-lat': .25 },
+    'db-skull-crusher': { 'tri-long': 1, 'tri-lat': .5 },
+    'db-rdl': { hamstrings: 1, glutes: 1, 'lower-back': .5, forearms: .25 },
+    'glute-bridge': { glutes: 1, hamstrings: .5 },
+    'bw-calf-raise': { calves: 1 },
+    'db-bent-row': { 'upper-back': 1, lats: .5, 'delt-rear': .5, 'lower-back': .25, biceps: .25 },
+    'db-pullover': { lats: 1, 'chest-mid': 1, 'chest-upper': .5, 'tri-long': .25 },
+    'mountain-climber': { 'abs-lower': 1, 'abs-upper': .5, obliques: .5, 'delt-front': .25, quads: .25 },
+  };
+
+  // What a lift works. Custom lifts get a light touch on every area of their group.
+  function of(ex) {
+    if (!ex) return {};
+    if (T[ex.id]) return T[ex.id];
+    const out = {};
+    (ex.groups || []).slice(0, 1).forEach((g) => (GROUP_AREAS[g] || []).forEach((a) => { out[a] = .5; }));
+    return out;
+  }
+
+  // Combined work per area over a list of lifts: the strongest lift counts in full,
+  // the others at half. So one direct lift = 1, but two lifts that only "help" = .75.
+  function total(exs) {
+    const sum = {}, max = {}, out = {};
+    exs.forEach((ex) => Object.entries(of(ex)).forEach(([a, v]) => {
+      sum[a] = (sum[a] || 0) + v; max[a] = Math.max(max[a] || 0, v);
+    }));
+    Object.keys(sum).forEach((a) => { out[a] = max[a] + (sum[a] - max[a]) / 2; });
+    return out;
+  }
+
+  const level = (v) => (v >= 1 ? 3 : v >= .5 ? 2 : v > 0 ? 1 : 0);
+
+  // ---- body shapes (left half; mirrored for the right). viewBox 0 0 100 210
+  const SIL = 'M50 27 L45 27 L44 30 C37 30 30 31 26 34 C22 37 20 42 20 48 L18 67 L14 90 L13 101 L17 106 L20 101 L21 91 L26 70 L29 55 L31 52 L33 68 L35 88 L35 98 L36 140 L37 160 L38 196 L35 204 L47 204 L46 196 L46 162 L48 121 L50 107 Z';
+  const FRONT = [
+    ['traps', 'M44 30 C40 30 36 31 33 32 L45 34 Z'],
+    ['delt-side', 'M26 34 C22 37 20.5 42 20.5 48 L23.5 49 C23.5 43 25 38 28 35 Z'],
+    ['delt-front', 'M33 32 C30 32 28.5 33.5 28 35 C25 38 23.5 43 23.5 49 L27.5 51 C29 45 31 40 35 37 Z'],
+    ['chest-upper', 'M49 34 L36 33 C33 35 31 38 30.5 40 L49 41.5 Z'],
+    ['chest-mid', 'M49 42.5 L30.3 41 C30 44 30.5 46.5 31.5 48.5 L49 50 Z'],
+    ['chest-lower', 'M49 51 L32 49.5 C34 53 38 55.5 43 56 L49 56 Z'],
+    ['biceps', 'M27.5 52.5 L23.6 50.5 C22.4 55 21.6 61 21.4 66 L25.4 67 C26.6 62 27.6 57 27.5 52.5 Z'],
+    ['brachialis', 'M21.1 59 L19.2 59 L18.6 66.5 L20.9 66.8 Z'],
+    ['forearms', 'M25.2 69 L18.4 68.5 L14.8 90 L20.3 90.5 Z'],
+    ['abs-upper', 'M49 58 L43 58 L42.6 73 L49 73 Z'],
+    ['abs-lower', 'M49 74.5 L42.6 74.5 L43 90 C45 93 47 95 49 96 Z'],
+    ['obliques', 'M41 58.5 L34 57 L35.5 80 L37 90 L41.3 90 Z'],
+    ['quads', 'M37.5 101 L36.7 138 L39 156 L46 156 L47.4 122 L45 108 Z'],
+    ['calves', 'M38.2 164 L38.9 186 L40.8 186 L40.6 166 Z'],
+  ];
+  const BACK = [
+    ['traps', 'M49 26 L44.5 29 C40 30 36 31 33 32.5 L49 58 Z'],
+    ['delt-side', 'M26 34 C22 37 20.5 42 20.5 48 L23.5 49 C23.5 43 25 38 28 35 Z'],
+    ['delt-rear', 'M33 32.5 C30 32.5 28.5 33.5 28 35 C25 38 23.5 43 23.5 49 L27.5 51 C29 45 31 40 34.5 37 Z'],
+    ['upper-back', 'M35.5 35.5 L46.8 52 L42 53 C38 50 35 46 32 43 C32.5 40 33.8 37.5 35.5 35.5 Z'],
+    ['lats', 'M31.6 44.5 C35 48 38.5 51.5 42 54 L48 56 L46.5 74 L40 77 L35.5 79 L33.8 67 Z'],
+    ['lower-back', 'M49 60 L48.3 75 L42 78.5 L43 92 L49 92 Z'],
+    ['tri-long', 'M27.5 52.5 L25.5 51.5 L24.3 67 L26.1 67.4 C27 62 27.6 57 27.5 52.5 Z'],
+    ['tri-lat', 'M25.3 51.3 L23.6 50.5 C22.4 55 21.6 61 21.4 66 L24 66.7 Z'],
+    ['forearms', 'M25.2 69 L18.4 68.5 L14.8 90 L20.3 90.5 Z'],
+    ['glutes', 'M49.5 95 L37 94 L35.5 99 C35.6 107 38 113 44 115 L49 113.5 Z'],
+    ['hamstrings', 'M37 117 L36.8 138 L38.8 156 L46 156 L47.4 122 L45 117.5 Z'],
+    ['calves', 'M38.4 163 C37.5 170 38.2 178 40 184 L44 184 C45.6 177 45.8 170 45.6 163 Z'],
+  ];
+
+  const mirror = (d) => d.replace(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g, (m, x, y) => `${+(100 - x).toFixed(2)} ${y}`);
+
+  function half(regions, vals) {
+    return regions.map(([a, d]) => {
+      const v = vals[a] || 0;
+      const cls = `hm hm-${level(v)}`;
+      const t = `<title>${AREAS[a]}</title>`;
+      return `<path class="${cls}" d="${d}">${t}</path><path class="${cls}" d="${mirror(d)}">${t}</path>`;
+    }).join('');
+  }
+
+  function body(regions, vals, label) {
+    return `<svg viewBox="8 0 84 ${label ? 224 : 210}" class="hm-body" aria-hidden="true">
+      <circle cx="50" cy="14" r="10" class="hm-sil"/>
+      <path class="hm-sil" d="${SIL}"/><path class="hm-sil" d="${mirror(SIL)}"/>
+      <rect x="44" y="24" width="12" height="7" class="hm-sil"/>
+      ${half(regions, vals)}
+      ${label ? `<text x="50" y="222" class="hm-lbl">${label}</text>` : ''}
+    </svg>`;
+  }
+
+  // Ordered list of the areas a lift works, strongest first.
+  function list(vals, min = .5) {
+    return Object.entries(vals).filter(([, v]) => v >= min).sort((a, b) => b[1] - a[1]).map(([a]) => a);
+  }
+
+  function map(vals, opts = {}) {
+    const hit = list(vals);
+    const aria = hit.length ? `Muscles worked: ${hit.map((a) => AREAS[a]).join(', ')}` : 'No muscles mapped';
+    return `<div class="hm-wrap${opts.mini ? ' mini' : ''}" role="img" aria-label="${aria}">
+      ${body(FRONT, vals, opts.mini ? '' : 'Front')}${body(BACK, vals, opts.mini ? '' : 'Back')}</div>`;
+  }
+
+  window.Muscles = { AREAS, GROUP_AREAS, of, total, level, map, list };
+})();
+</script>
+  <script>
+/* ===== figure.js ===== */
+/*
+ * Animated stick-figure diagrams.
+ *
+ * Each exercise defines two poses (a = start, b = end). The figure eases
+ * between them on a loop. Side view (default) coordinates are in a 200x200 box,
+ * the figure faces right, the floor is at y=182.
+ *
+ * Side-view pose keys
+ *   hx, hy        hip position
+ *   t             torso lean in degrees from vertical (+ = leaning forward/right)
+ *   sTo [x,y]     aim the torso at a point instead of using t
+ *   ua, fa        upper-arm / forearm angle, degrees from straight down (+ = forward)
+ *   rel           arm angles are relative to the torso
+ *   hand [x,y]    hand target (2-bone IK) - or handT [fwd, up] in the torso's frame
+ *   ab            elbow bend direction for IK: fwd | back | up | down
+ *   th, sh        thigh / shin angle, degrees from straight down
+ *   foot [x,y]    foot target (IK), lb = knee bend direction
+ *   toe [x,y]     fixed toe point (calf raises)
+ *   al            arm length scale (foreshortening)
+ *   suffix 2      far-side limb (ua2, hand2, foot2 ...) - defaults to the near side
+ *
+ * Front view (view: 'front'): hx, hy, ua, fa, th, sh are "outward" angles, shr = shrug,
+ *   tf = torso length scale (< 1 = bent over toward the viewer).
+ */
+(function () {
+  const L = { torso: 46, neck: 6, head: 9, ua: 26, fa: 24, th: 32, sh: 32 };
+  const R = Math.PI / 180;
+  const FLOOR = 182;
+  const vec = (a, l) => [Math.sin(a * R) * l, Math.cos(a * R) * l];
+  const add = (p, v) => [p[0] + v[0], p[1] + v[1]];
+  const mul = (v, s) => [v[0] * s, v[1] * s];
+
+  function ik(S, T, a, b, bend) {
+    const dx = T[0] - S[0], dy = T[1] - S[1];
+    let d = Math.hypot(dx, dy) || 0.001;
+    const base = Math.atan2(dy, dx);
+    d = Math.min(Math.max(d, Math.abs(a - b) + 0.01), a + b - 0.01);
+    const al = Math.acos((a * a + d * d - b * b) / (2 * a * d));
+    const c1 = [S[0] + a * Math.cos(base + al), S[1] + a * Math.sin(base + al)];
+    const c2 = [S[0] + a * Math.cos(base - al), S[1] + a * Math.sin(base - al)];
+    const end = [S[0] + d * Math.cos(base), S[1] + d * Math.sin(base)];
+    let j;
+    if (bend === 'back') j = c1[0] < c2[0] ? c1 : c2;
+    else if (bend === 'up') j = c1[1] < c2[1] ? c1 : c2;
+    else if (bend === 'down') j = c1[1] > c2[1] ? c1 : c2;
+    else j = c1[0] > c2[0] ? c1 : c2;
+    return [j, end];
+  }
+
+  function lerpPose(a, b, u) {
+    const out = {};
+    const keys = new Set(Object.keys(a).concat(Object.keys(b)));
+    keys.forEach((k) => {
+      const va = k in a ? a[k] : b[k];
+      const vb = k in b ? b[k] : a[k];
+      if (typeof va === 'number' && typeof vb === 'number') out[k] = va + (vb - va) * u;
+      else if (Array.isArray(va) && Array.isArray(vb)) out[k] = va.map((x, i) => x + (vb[i] - x) * u);
+      else out[k] = u < 0.5 ? va : vb;
+    });
+    return out;
+  }
+
+  function solveSide(p) {
+    const hip = [p.hx ?? 100, p.hy ?? 118];
+    let t = p.t || 0;
+    if (p.sTo) t = 180 - Math.atan2(p.sTo[0] - hip[0], p.sTo[1] - hip[1]) / R;
+    const up = vec(180 - t, 1);
+    const fw = [-up[1], up[0]];
+    const sh = add(hip, mul(up, L.torso));
+    const head = add(sh, mul(up, L.neck + L.head));
+
+    const g = (k, sfx) => (p[k + sfx] !== undefined ? p[k + sfx] : p[k]);
+    function arm(sfx) {
+      const s = g('al', sfx) ?? 1;
+      const a = L.ua * s, b = L.fa * s;
+      let tgt = g('hand', sfx);
+      const ht = g('handT', sfx);
+      if (!tgt && ht) tgt = add(add(sh, mul(fw, ht[0])), mul(up, ht[1]));
+      if (tgt) return ik(sh, tgt, a, b, g('ab', sfx) || 'down');
+      const off = p.rel ? t : 0;
+      const e = add(sh, vec((g('ua', sfx) || 0) - off, a));
+      return [e, add(e, vec((g('fa', sfx) || 0) - off, b))];
+    }
+    function leg(sfx) {
+      let k, f;
+      const tgt = g('foot', sfx);
+      if (tgt) [k, f] = ik(hip, tgt, L.th, L.sh, g('lb', sfx) || 'fwd');
+      else {
+        k = add(hip, vec(g('th', sfx) || 0, L.th));
+        f = add(k, vec(g('sh', sfx) || 0, L.sh));
+      }
+      let toe = g('toe', sfx);
+      if (!toe) {
+        const d = [f[0] - k[0], f[1] - k[1]];
+        const n = Math.hypot(d[0], d[1]) || 1;
+        toe = add(f, [(d[1] / n) * 9, (-d[0] / n) * 9]);
+      }
+      return [k, f, toe];
+    }
+    return { view: 'side', hip, sh, head, arm: arm(''), arm2: arm('2'), leg: leg(''), leg2: leg('2') };
+  }
+
+  function solveFront(p) {
+    const hip = [p.hx ?? 100, p.hy ?? 118];
+    const tf = p.tf ?? 1; // torso foreshortening (bent over, facing the viewer)
+    const neck = [hip[0], hip[1] - L.torso * tf];
+    const shr = p.shr || 0;
+    const sL = [neck[0] - 15, neck[1] + 4 - shr];
+    const sR = [neck[0] + 15, neck[1] + 4 - shr];
+    const hL = [hip[0] - 8, hip[1]];
+    const hR = [hip[0] + 8, hip[1]];
+    // bent over toward the viewer: the head drops to about shoulder level
+    const head = [neck[0], neck[1] - (L.neck + L.head - 2) * tf + (1 - tf) * 6];
+    const out = (a, l, side) => [Math.sin(a * R) * l * side, Math.cos(a * R) * l];
+    const arm = (s, side) => {
+      const e = add(s, out(p.ua || 0, L.ua, side));
+      return [e, add(e, out(p.fa || 0, L.fa, side))];
+    };
+    const leg = (h, side) => {
+      const k = add(h, out(p.th ?? 3, L.th, side));
+      const f = add(k, out(p.sh ?? 0, L.sh, side));
+      return [k, f, add(f, [6 * side, 0])];
+    };
+    return { view: 'front', hip, neck, head, sL, sR, hL, hR, arm: arm(sL, -1), arm2: arm(sR, 1), leg: leg(hL, -1), leg2: leg(hR, 1) };
+  }
+
+  const f1 = (n) => Math.round(n * 10) / 10;
+  const ln = (a, b, cls, w) =>
+    `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" class="${cls}"${w ? ` stroke-width="${w}"` : ''}/>`;
+
+  function staticEquip(eq) {
+    return (eq || [])
+      .filter((e) => e.type === 'line')
+      .map((e) => ln([e.x1, e.y1], [e.x2, e.y2], 'f-eq', e.w || 4))
+      .join('');
+  }
+
+  function points(s, at) {
+    switch (at) {
+      case 'hand': return [s.arm[1]];
+      case 'hand2': return [s.arm2[1]];
+      case 'hip': return [s.hip];
+      case 'foot': return [s.leg[1]];
+      default: return [s.arm[1], s.arm2[1]];
+    }
+  }
+
+  function dynEquip(s, eq, under) {
+    let out = '';
+    (eq || []).forEach((e) => {
+      if (e.type === 'cable' && under) {
+        const tgt = points(s, e.at || 'hand')[0];
+        out += ln([e.px, e.py], tgt, 'f-cable', 1.5);
+        out += `<circle cx="${e.px}" cy="${e.py}" r="5" class="f-pulley"/>`;
+      }
+      if (under) return;
+      if (e.type === 'db') {
+        points(s, e.at).forEach(([x, y]) => {
+          out += `<rect x="${f1(x - 7)}" y="${f1(y - 2)}" width="14" height="4" rx="1" class="f-wt"/>`;
+          out += `<rect x="${f1(x - 10)}" y="${f1(y - 5)}" width="5" height="10" rx="1.5" class="f-wt"/>`;
+          out += `<rect x="${f1(x + 5)}" y="${f1(y - 5)}" width="5" height="10" rx="1.5" class="f-wt"/>`;
+        });
+      } else if (e.type === 'bb') {
+        if (s.view === 'front') {
+          const a = s.arm[1], b = s.arm2[1];
+          const y = (a[1] + b[1]) / 2;
+          out += ln([a[0] - 40, y], [b[0] + 40, y], 'f-bar', 3);
+          out += `<rect x="${f1(a[0] - 44)}" y="${f1(y - 11)}" width="6" height="22" rx="1.5" class="f-wt"/>`;
+          out += `<rect x="${f1(b[0] + 38)}" y="${f1(y - 11)}" width="6" height="22" rx="1.5" class="f-wt"/>`;
+        } else {
+          const [x, y] = points(s, e.at === 'hip' ? 'hip' : 'hand')[0];
+          const dy = e.at === 'hip' ? -9 : 0;
+          out += `<circle cx="${f1(x)}" cy="${f1(y + dy)}" r="11" class="f-plate"/>`;
+          out += `<circle cx="${f1(x)}" cy="${f1(y + dy)}" r="2.5" class="f-wt"/>`;
+        }
+      } else if (e.type === 'grip' || e.type === 'cable') {
+        points(s, e.type === 'cable' ? e.at || 'hand' : e.at).forEach(([x, y]) => {
+          out += `<circle cx="${f1(x)}" cy="${f1(y)}" r="3.5" class="f-wt"/>`;
+        });
+      } else if (e.type === 'roller') {
+        const [x, y] = s.leg[1];
+        out += `<circle cx="${f1(x)}" cy="${f1(y - 2)}" r="6" class="f-plate"/>`;
+      } else if (e.type === 'footplate') {
+        const f = s.leg[1];
+        const d = [f[0] - s.hip[0], f[1] - s.hip[1]];
+        const n = Math.hypot(d[0], d[1]) || 1;
+        const pp = [(-d[1] / n) * 18, (d[0] / n) * 18];
+        const o = [(d[0] / n) * 4, (d[1] / n) * 4];
+        out += ln(add(add(f, o), pp), add(add(f, o), mul(pp, -1)), 'f-eq', 5);
+      }
+    });
+    return out;
+  }
+
+  function drawSide(s, eq) {
+    const far = (pts) => pts.map((p) => [p[0] - 4, p[1] - 2]);
+    const hip2 = [s.hip[0] - 4, s.hip[1] - 2];
+    const sh2 = [s.sh[0] - 4, s.sh[1] - 2];
+    const [k2, f2, t2] = far(s.leg2);
+    const [e2, h2] = far(s.arm2);
+    const [k, f, t] = s.leg;
+    const [e, h] = s.arm;
+    return (
+      dynEquip(s, eq, true) +
+      ln(hip2, k2, 'f-far') + ln(k2, f2, 'f-far') + ln(f2, t2, 'f-far', 4) +
+      ln(sh2, e2, 'f-far') + ln(e2, h2, 'f-far') +
+      ln(s.hip, s.sh, 'f-body', 9) +
+      `<circle cx="${f1(s.head[0])}" cy="${f1(s.head[1])}" r="${L.head}" class="f-head"/>` +
+      ln(s.hip, k, 'f-limb') + ln(k, f, 'f-limb') + ln(f, t, 'f-limb', 4) +
+      ln(s.sh, e, 'f-limb') + ln(e, h, 'f-limb') +
+      `<circle cx="${f1(h[0])}" cy="${f1(h[1])}" r="3" class="f-joint"/>` +
+      dynEquip(s, eq, false)
+    );
+  }
+
+  function drawFront(s, eq) {
+    const legs = [s.leg, s.leg2].map(([k, f, t], i) => {
+      const h = i ? s.hR : s.hL;
+      return ln(h, k, 'f-limb') + ln(k, f, 'f-limb') + ln(f, t, 'f-limb', 4);
+    }).join('');
+    const arms = [s.arm, s.arm2].map(([e, h], i) => {
+      const sp = i ? s.sR : s.sL;
+      return ln(sp, e, 'f-limb') + ln(e, h, 'f-limb');
+    }).join('');
+    const mid = [(s.sL[0] + s.sR[0]) / 2, (s.sL[1] + s.sR[1]) / 2];
+    return (
+      dynEquip(s, eq, true) + legs +
+      ln(s.hL, s.hR, 'f-body', 8) + ln(mid, s.hip, 'f-body', 9) + ln(s.sL, s.sR, 'f-body', 8) +
+      `<circle cx="${f1(s.head[0])}" cy="${f1(s.head[1])}" r="${L.head}" class="f-head"/>` +
+      arms + dynEquip(s, eq, false)
+    );
+  }
+
+  const GENERIC = { a: { hx: 100, hy: 118, ua: 4, fa: 4, foot: [100, 182], foot2: [96, 182] }, b: { hx: 100, hy: 118, ua: 10, fa: 30, foot: [100, 182], foot2: [96, 182] } };
+
+  function ease(x) { return x * x * (3 - 2 * x); }
+  function phase(ms, period) {
+    const x = (ms % period) / period;
+    if (x < 0.1) return 0;
+    if (x < 0.45) return ease((x - 0.1) / 0.35);
+    if (x < 0.6) return 1;
+    if (x < 0.95) return 1 - ease((x - 0.6) / 0.35);
+    return 0;
+  }
+
+  function frame(anim, u) {
+    const p = lerpPose(anim.a, anim.b, u);
+    const s = anim.view === 'front' ? solveFront(p) : solveSide(p);
+    return anim.view === 'front' ? drawFront(s, anim.eq) : drawSide(s, anim.eq);
+  }
+
+  const live = new Set();
+  let raf = null;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function tick(now) {
+    live.forEach((f) => {
+      if (!f.svg.isConnected) { live.delete(f); return; }
+      if (now - f.last < 33) return; // ~30fps is plenty
+      f.last = now;
+      f.layer.innerHTML = frame(f.anim, phase(now + f.offset, f.anim.period || 2800));
+    });
+    raf = live.size ? requestAnimationFrame(tick) : null;
+  }
+
+  function mount(el, ex, opts = {}) {
+    const anim = (ex && ex.anim) || GENERIC;
+    el.innerHTML =
+      `<svg viewBox="6 6 188 188" class="fig" role="img" aria-label="${(ex && ex.name) || 'Exercise'} movement diagram">` +
+      `<line x1="8" y1="${FLOOR + 3}" x2="192" y2="${FLOOR + 3}" class="f-floor"/>` +
+      staticEquip(anim.eq) + `<g class="f-layer"></g></svg>`;
+    const svg = el.firstChild;
+    const layer = svg.querySelector('.f-layer');
+    if (opts.static || reduce || !ex || !ex.anim) {
+      layer.innerHTML = frame(anim, opts.u ?? (reduce ? 1 : 0));
+      if (reduce && ex && ex.anim && !opts.static) {
+        // show start position as a ghost so the motion is still readable
+        layer.innerHTML = `<g class="f-ghost">${frame(anim, 0)}</g>` + layer.innerHTML;
+      }
+      return;
+    }
+    live.add({ svg, layer, anim, last: 0, offset: opts.offset || 0 });
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  window.Figure = { mount };
+})();
+
+</script>
+  <script>
+/* ===== store.js ===== */
+/* Persistence (localStorage) and workout-history queries. */
+(function () {
+  const KEY = 'liftlog.v1';
+  const DEFAULTS = () => ({ v: 1, units: 'lb', rest: 90, sessions: [], custom: [], active: null });
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return DEFAULTS();
+      return Object.assign(DEFAULTS(), JSON.parse(raw));
+    } catch (e) {
+      return DEFAULTS();
+    }
+  }
+  function save(d) {
+    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) { /* storage full or blocked */ }
+  }
+
+  const e1rm = (w, r) => (r > 0 && w > 0 ? (r === 1 ? w : w * (1 + r / 30)) : 0);
+
+  function summarize(sets) {
+    let top = 0, best = 0, vol = 0, reps = 0, totalReps = 0;
+    sets.forEach((s) => {
+      top = Math.max(top, s.w);
+      best = Math.max(best, e1rm(s.w, s.r));
+      vol += s.w * s.r;
+      reps = Math.max(reps, s.r);
+      totalReps += s.r;
+    });
+    return { top, e1rm: best, vol, reps, totalReps };
+  }
+
+  const byDate = (a, b) => new Date(a.date) - new Date(b.date);
+
+  function lastEntry(d, exId) {
+    const sorted = [...d.sessions].sort(byDate);
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      const s = sorted[i];
+      const e = s.entries.find((x) => x.exId === exId);
+      if (e && e.sets.length) return { date: s.date, sets: e.sets };
+    }
+    return null;
+  }
+
+  function series(d, exId) {
+    return [...d.sessions].sort(byDate)
+      .map((s) => {
+        const e = s.entries.find((x) => x.exId === exId);
+        return e && e.sets.length ? { date: new Date(s.date), sets: e.sets, ...summarize(e.sets) } : null;
+      })
+      .filter(Boolean);
+  }
+
+  function bestE1rm(d, exId, beforeDate) {
+    let b = 0;
+    d.sessions.forEach((s) => {
+      if (beforeDate && new Date(s.date) >= new Date(beforeDate)) return;
+      const e = s.entries.find((x) => x.exId === exId);
+      if (e) b = Math.max(b, summarize(e.sets).e1rm);
+    });
+    return b;
+  }
+
+  function sessionVolume(s) {
+    return s.entries.reduce((t, e) => t + summarize(e.sets).vol, 0);
+  }
+
+  window.Store = { load, save, summarize, lastEntry, series, bestE1rm, sessionVolume, e1rm, byDate };
+})();
+
+</script>
+  <script>
+/* ===== chart.js ===== */
+/* Small dependency-free SVG charts: line (over time) and bars (weekly). */
+(function () {
+  const M = { l: 44, r: 14, t: 16, b: 28 };
+  const H = 220;
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const dlabel = (d) => `${MON[d.getMonth()]} ${d.getDate()}`;
+  const num = (n) => (n >= 10000 ? `${Math.round(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : `${Math.round(n * 10) / 10}`);
+
+  function ticks(min, max, n = 4) {
+    if (min === max) { min = min - 1 < 0 && min >= 0 ? 0 : min - 1; max += 1; }
+    const raw = (max - min) / n;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const norm = raw / mag;
+    const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+    const lo = Math.floor(min / step) * step;
+    const hi = Math.ceil(max / step) * step;
+    const out = [];
+    for (let v = lo; v <= hi + step / 2; v += step) out.push(Math.round(v * 1000) / 1000);
+    return out;
+  }
+
+  function frame(el) {
+    el.classList.add('chart');
+    const W = Math.max(260, el.clientWidth || 320);
+    return { W, pw: W - M.l - M.r, ph: H - M.t - M.b };
+  }
+
+  function grid(yt, y, W) {
+    return yt.map((v) =>
+      `<line x1="${M.l}" x2="${W - M.r}" y1="${y(v)}" y2="${y(v)}" class="c-grid"/>` +
+      `<text x="${M.l - 8}" y="${y(v) + 4}" text-anchor="end" class="c-axis">${num(v)}</text>`).join('');
+  }
+
+  function tooltip(el) {
+    let tip = el.querySelector('.c-tip');
+    if (!tip) { tip = document.createElement('div'); tip.className = 'c-tip'; el.appendChild(tip); }
+    return {
+      show(x, y, html, W) {
+        tip.innerHTML = html;
+        tip.style.display = 'block';
+        const w = tip.offsetWidth;
+        tip.style.left = `${Math.min(Math.max(x - w / 2, 0), W - w)}px`;
+        tip.style.top = `${Math.max(y - tip.offsetHeight - 12, 0)}px`;
+      },
+      hide() { tip.style.display = 'none'; },
+    };
+  }
+
+  function line(el, pts, opts = {}) {
+    const { W, pw, ph } = frame(el);
+    if (!pts.length) { el.innerHTML = `<p class="c-empty">${opts.empty || 'No data yet'}</p>`; return; }
+    const xs = pts.map((p) => +p.x);
+    const ys = pts.map((p) => p.y);
+    let x0 = Math.min(...xs), x1 = Math.max(...xs);
+    if (x0 === x1) { x0 -= 864e5 * 3; x1 += 864e5 * 3; }
+    const yt = ticks(Math.min(...ys), Math.max(...ys));
+    const y0 = yt[0], y1 = yt[yt.length - 1];
+    const x = (v) => M.l + ((v - x0) / (x1 - x0)) * pw;
+    const y = (v) => M.t + ph - ((v - y0) / (y1 - y0 || 1)) * ph;
+
+    const nx = Math.min(pts.length, Math.max(2, Math.floor(pw / 80)));
+    const xl = [];
+    for (let i = 0; i < nx; i++) xl.push(pts[Math.round((i * (pts.length - 1)) / Math.max(1, nx - 1))]);
+    const xlab = [...new Set(xl)].map((p, i, arr) => {
+      const anchor = arr.length > 1 && i === 0 ? 'start' : arr.length > 1 && i === arr.length - 1 ? 'end' : 'middle';
+      return `<text x="${x(+p.x)}" y="${H - 8}" text-anchor="${anchor}" class="c-axis">${dlabel(p.x)}</text>`;
+    }).join('');
+
+    const d = pts.map((p, i) => `${i ? 'L' : 'M'}${x(+p.x).toFixed(1)},${y(p.y).toFixed(1)}`).join('');
+    const last = pts[pts.length - 1];
+    const dots = pts.map((p) => `<circle cx="${x(+p.x)}" cy="${y(p.y)}" r="4" class="c-dot"/>`).join('');
+
+    el.innerHTML =
+      `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.label || 'Line chart'}">` +
+      grid(yt, y, W) + xlab +
+      `<path d="${d}" class="c-line"/>` + dots +
+      `<text x="${Math.min(x(+last.x), W - M.r)}" y="${y(last.y) - 10}" text-anchor="end" class="c-val">${num(last.y)}${opts.unit ? ' ' + opts.unit : ''}</text>` +
+      `<line class="c-cross" y1="${M.t}" y2="${M.t + ph}" x1="0" x2="0" style="display:none"/>` +
+      `<circle class="c-hl" r="6" style="display:none"/>` +
+      `<rect x="${M.l}" y="0" width="${pw}" height="${H}" fill="transparent" class="c-hit"/></svg>`;
+
+    const svg = el.querySelector('svg');
+    const cross = svg.querySelector('.c-cross');
+    const hl = svg.querySelector('.c-hl');
+    const tip = tooltip(el);
+    const move = (ev) => {
+      const r = svg.getBoundingClientRect();
+      const mx = ev.clientX - r.left;
+      let bi = 0, bd = Infinity;
+      pts.forEach((p, i) => { const dd = Math.abs(x(+p.x) - mx); if (dd < bd) { bd = dd; bi = i; } });
+      const p = pts[bi];
+      const px = x(+p.x), py = y(p.y);
+      cross.setAttribute('x1', px); cross.setAttribute('x2', px); cross.style.display = '';
+      hl.setAttribute('cx', px); hl.setAttribute('cy', py); hl.style.display = '';
+      tip.show(px, py, `<b>${num(p.y)}${opts.unit ? ' ' + opts.unit : ''}</b><span>${dlabel(p.x)}${p.note ? ' · ' + p.note : ''}</span>`, W);
+    };
+    const leave = () => { cross.style.display = 'none'; hl.style.display = 'none'; tip.hide(); };
+    const hit = svg.querySelector('.c-hit');
+    hit.addEventListener('pointermove', move);
+    hit.addEventListener('pointerdown', move);
+    hit.addEventListener('pointerleave', leave);
+  }
+
+  function bars(el, pts, opts = {}) {
+    const { W, pw, ph } = frame(el);
+    const max = Math.max(...pts.map((p) => p.y), 0);
+    if (!pts.length || max === 0) { el.innerHTML = `<p class="c-empty">${opts.empty || 'No data yet'}</p>`; return; }
+    const yt = ticks(0, max);
+    const y1 = yt[yt.length - 1];
+    const y = (v) => M.t + ph - (v / y1) * ph;
+    const band = pw / pts.length;
+    const bw = Math.min(28, band * 0.7);
+    const every = Math.ceil(pts.length / Math.max(2, Math.floor(pw / 64)));
+
+    let body = '';
+    pts.forEach((p, i) => {
+      const cx = M.l + band * i + band / 2;
+      if (p.y > 0) {
+        const top = y(p.y), bot = y(0), r = Math.min(4, bot - top), l = cx - bw / 2, rr = cx + bw / 2;
+        body += `<path class="c-bar" d="M${l},${bot}V${top + r}Q${l},${top} ${l + r},${top}H${rr - r}Q${rr},${top} ${rr},${top + r}V${bot}Z"/>`;
+      }
+      if (i % every === 0 || i === pts.length - 1) {
+        if (i === pts.length - 1 && i % every !== 0 && (i % every) < every / 2) return;
+        body += `<text x="${cx}" y="${H - 8}" text-anchor="middle" class="c-axis">${p.label}</text>`;
+      }
+    });
+    const hits = pts.map((p, i) => `<rect x="${M.l + band * i}" y="0" width="${band}" height="${H}" fill="transparent" data-i="${i}"/>`).join('');
+    el.innerHTML =
+      `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.label || 'Bar chart'}">` +
+      grid(yt, y, W) + `<line x1="${M.l}" x2="${W - M.r}" y1="${y(0)}" y2="${y(0)}" class="c-base"/>` + body +
+      `<g class="c-hits">${hits}</g></svg>`;
+    const tip = tooltip(el);
+    const svg = el.querySelector('svg');
+    const show = (ev) => {
+      const i = +ev.target.dataset.i;
+      if (Number.isNaN(i)) return;
+      const p = pts[i];
+      const cx = M.l + band * i + band / 2;
+      tip.show(cx, y(p.y), `<b>${num(p.y)}${opts.unit ? ' ' + opts.unit : ''}</b><span>${p.tip || p.label}</span>`, W);
+    };
+    const hide = () => tip.hide();
+    svg.querySelector('.c-hits').addEventListener('pointermove', show);
+    svg.querySelector('.c-hits').addEventListener('pointerdown', show);
+    svg.querySelector('.c-hits').addEventListener('pointerleave', hide);
+  }
+
+  window.Charts = { line, bars, dlabel, num };
+})();
+
+</script>
+  <script>
+/* ===== app.js ===== */
+(function () {
+  'use strict';
+  const app = document.getElementById('app');
+  const tabsEl = document.getElementById('tabs');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  let D = Store.load();
+  const save = () => Store.save(D);
+
+  const ui = {
+    tab: 'train',
+    step: 'groups',       // groups | plan
+    groups: [],
+    plan: [],
+    picker: null,         // { mode, i, g, q }
+    progEx: null,
+    metric: 'e1rm',
+    open: {},             // expanded history items
+    rest: null,           // { end, total }
+    summary: null,
+    justFinishedLift: false,
+  };
+
+  // ---------------------------------------------------------------- helpers
+  const allEx = () => EXERCISES.concat(D.custom);
+  const getEx = (id) => allEx().find((e) => e.id === id) || { id, name: id, groups: [], equip: '', sets: 3, reps: '8–12', cues: [] };
+  const groupName = (id) => (GROUPS.find((g) => g.id === id) || {}).name || id;
+  const unit = () => D.units;
+  const fmtNum = (n) => (Math.round(n * 100) / 100).toString();
+  const setStr = (s, ex) => {
+    if (ex && ex.timed) return s.w ? `+${fmtNum(s.w)}×${s.r}s` : `${s.r}s`;
+    return `${s.w ? fmtNum(s.w) : 'BW'}×${s.r}`;
+  };
+  const shortDate = (iso) => Charts.dlabel(new Date(iso));
+  const daysAgo = (iso) => {
+    const a = new Date(iso); a.setHours(0, 0, 0, 0);
+    const b = new Date(); b.setHours(0, 0, 0, 0);
+    return Math.round((b - a) / 864e5);
+  };
+  const agoText = (iso) => {
+    const n = daysAgo(iso);
+    return n <= 0 ? 'today' : n === 1 ? 'yesterday' : n < 14 ? `${n} days ago` : n < 60 ? `${Math.round(n / 7)} weeks ago` : shortDate(iso);
+  };
+  const repTarget = (ex) => {
+    const m = String(ex.reps || '').match(/\d+/);
+    return m ? m[0] : '';
+  };
+  const uid = () => Math.random().toString(36).slice(2, 10);
+
+  // toast(msg) shows a short message; toast(msg, undoFn) adds an Undo button
+  // and stays up longer so there's time to press it.
+  function toast(msg, undo) {
+    let t = document.getElementById('toast');
+    if (!t) { t = document.createElement('div'); t.id = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+    t.textContent = msg;
+    t.classList.toggle('has-undo', !!undo);
+    if (undo) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = 'Undo';
+      b.onclick = () => { clearTimeout(t._h); t.classList.remove('show'); undo(); };
+      t.appendChild(b);
+    }
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(() => t.classList.remove('show'), undo ? 6000 : 2200);
+  }
+
+  function lastTrained(gid) {
+    const s = [...D.sessions].sort(Store.byDate).reverse().find((x) => (x.groups || []).includes(gid));
+    return s ? `Last: ${agoText(s.date)}` : 'Not trained yet';
+  }
+
+  function lastLine(exId) {
+    const l = Store.lastEntry(D, exId);
+    if (!l) return '';
+    const ex = getEx(exId);
+    return `${l.sets.map((s) => setStr(s, ex)).join(', ')} · ${shortDate(l.date)}`;
+  }
+
+  // ------------------------------------------------------- starting weights
+  // Typical first working weight for a new lifter at the lift's target reps,
+  // as a fraction of bodyweight (dumbbells: per hand; cable fly: per side).
+  // Deliberately on the light side: set 1 is a test set and the next set adjusts.
+  const START = {
+    'bench-press': .45, 'incline-bb-press': .38, 'close-grip-bench': .38, 'db-bench': .14, 'incline-db-press': .12,
+    'cable-fly': .07, 'machine-chest-press': .38, 'pec-deck': .3,
+    'lat-pulldown': .45, 'barbell-row': .4, 'db-row': .17, 'cable-row': .45, 'machine-row': .4, deadlift: .7,
+    'straight-arm-pulldown': .2, 'face-pull': .2,
+    ohp: .3, 'db-shoulder-press': .1, 'machine-shoulder-press': .3, 'lateral-raise': .035, 'cable-lateral-raise': .03,
+    'front-raise': .04, 'rear-delt-fly': .035, 'upright-row': .25, shrug: .2,
+    'barbell-curl': .25, 'db-curl': .07, 'hammer-curl': .08, 'preacher-curl': .2, 'cable-curl': .2, 'incline-db-curl': .06, 'concentration-curl': .06,
+    'tricep-pushdown': .2, 'skull-crusher': .19, 'db-skull-crusher': .06, 'overhead-extension': .12, 'cable-overhead-extension': .15, kickback: .05,
+    'back-squat': .55, 'goblet-squat': .2, rdl: .5, 'db-rdl': .15, 'leg-press': .9, 'walking-lunge': .08, 'bulgarian-split-squat': .06,
+    'leg-extension': .3, 'leg-curl': .3, 'hip-thrust': .55, 'calf-raise': .15, 'cable-crunch': .35, 'db-pullover': .12, 'db-bent-row': .14,
+  };
+  // Lifts done with a full Olympic bar start at the empty bar at the lightest.
+  const FULL_BAR = new Set(['bench-press', 'incline-bb-press', 'close-grip-bench', 'barbell-row', 'deadlift', 'ohp', 'back-squat', 'rdl', 'hip-thrust']);
+  const EXP = { new: { k: 1, name: 'New (under 6 months)' }, some: { k: 1.6, name: 'Some (6 months – 2 years)' }, exp: { k: 2.3, name: 'Experienced (2+ years)' } };
+  const ASSISTED = { 'pull-up': 1, 'chin-up': 1, 'chest-dip': 1 };
+
+  const repMid = (ex) => {
+    const n = String(ex.reps || '').match(/\d+/g);
+    return n ? Math.round(n.length > 1 ? (+n[0] + +n[1]) / 2 : +n[0]) : 10;
+  };
+  const repRange = (ex) => {
+    const n = String(ex.reps || '').match(/\d+/g);
+    return n ? [+n[0], +(n[1] || n[0])] : [8, 12];
+  };
+  const isKg = () => D.units === 'kg';
+  function step(ex) {
+    if (ex.equip === 'Dumbbell') return isKg() ? 2 : 5;
+    return isKg() ? 2.5 : 5;
+  }
+  function floorW(ex) {
+    if (FULL_BAR.has(ex.id)) return isKg() ? 20 : 45;
+    if (ex.equip === 'Barbell') return isKg() ? 10 : 20; // EZ / fixed bar
+    return step(ex);
+  }
+  // round down to what the gym actually has, never below the lightest option
+  const roundW = (w, ex) => Math.max(floorW(ex), Math.floor(w / step(ex) + 0.25) * step(ex));
+
+  function profileBw() {
+    const pr = D.profile;
+    if (!pr || !(pr.bw > 0)) return 0;
+    if (!pr.unit || pr.unit === D.units) return pr.bw;
+    return pr.unit === 'kg' ? pr.bw * 2.2046 : pr.bw / 2.2046;
+  }
+
+  // Estimate a first working weight for a lift with no history.
+  // 1) scale from lifts you've already logged (similar muscles count most),
+  // 2) else bodyweight × experience, 3) else a cautious default bodyweight.
+  function startWeight(exId) {
+    const ex = getEx(exId);
+    if (ex.bw || ex.timed) return { bw: true, assisted: !!ASSISTED[ex.id] };
+    const r = START[ex.id];
+    if (!r) return null;
+    let sum = 0, wsum = 0, ref = null, refW = 0;
+    Object.keys(START).forEach((id) => {
+      if (id === ex.id) return;
+      const l = Store.lastEntry(D, id);
+      if (!l) return;
+      const o = getEx(id);
+      const best = Math.max(...l.sets.map((x) => Store.e1rm(x.w, x.r)));
+      if (!(best > 0)) return;
+      const k = best / (1 + repMid(o) / 30) / START[id]; // your "strength scale" from that lift
+      const wt = 0.15 + similarity(ex, o) + (o.equip === ex.equip ? 0.1 : 0);
+      sum += k * wt; wsum += wt;
+      if (wt > refW) { refW = wt; ref = o; }
+    });
+    if (wsum) return { w: roundW((sum / wsum) * r * 0.9, ex), from: 'lifts', ref };
+    const bw = profileBw();
+    const exp = (D.profile && EXP[D.profile.exp]) || EXP.new;
+    if (bw) return { w: roundW(bw * r * exp.k, ex), from: 'profile' };
+    return { w: roundW((isKg() ? 70 : 155) * r, ex), from: 'default' };
+  }
+
+  // After a test set on a new lift: suggest the next set's weight from the reps you got.
+  function calibrate(ex, set) {
+    const [lo, hi] = repRange(ex);
+    const w = +set.w, r = +set.r;
+    if (!(w > 0) || !(r > 0)) return null;
+    if (r >= hi + 3) return { w: Math.max(roundW(w * 1.15, ex), w + step(ex)), why: `${r} reps was easy, go up` };
+    if (r > hi) return { w: w + step(ex), why: `${r} reps is above ${hi}, go up a little` };
+    if (r < lo) return { w: Math.max(floorW(ex), Math.min(roundW(w * 0.88, ex), w - step(ex))), why: `${r} reps is under ${lo}, go down` };
+    return { w, why: `${r} reps is right in range, stay here` };
+  }
+
+  function startText(est, ex) {
+    if (!est) return `First time logging this lift. Pick a weight you can do for ${esc(ex.reps || 'your target reps')} with good form.`;
+    if (est.bw) {
+      return `First time: start with just your bodyweight (leave +${unit()} at 0).`
+        + (est.assisted ? ' Can\'t get 5 reps? Use an assist machine or band, or do slow lowering-only reps.' : '');
+    }
+    const src = est.from === 'lifts' ? `Based on your ${esc(est.ref.name)}.`
+      : est.from === 'profile' ? 'Based on your bodyweight and experience.'
+      : 'Rough guess for a new lifter.';
+    return `<b class="sw">Try ${fmtNum(est.w)} ${unit()}${ex.equip === 'Dumbbell' && !/goblet|overhead-extension|calf|pullover/.test(ex.id) ? ' each hand' : ''} for ${esc(ex.reps)} reps</b>
+      <span>${src} Use set 1 as a test: you should finish with 1–2 reps left in the tank. The next set adjusts to how it went.</span>`;
+  }
+
+  function profileForm() {
+    const pr = D.profile || {};
+    return `<div class="prof">
+      <span class="prof-h">${pr.bw ? 'Your details (also in History › Settings)' : 'Add these for a better starting weight'}</span>
+      <label><span>Bodyweight (${unit()})</span><input id="prof-bw" type="number" inputmode="decimal" min="0" step="any" value="${pr.bw ? fmtNum(profileBw()) : ''}" placeholder="e.g. ${isKg() ? 75 : 165}"></label>
+      <label><span>Lifting experience</span><select id="prof-exp">${Object.keys(EXP).map((k) => `<option value="${k}" ${(pr.exp || 'new') === k ? 'selected' : ''}>${EXP[k].name}</option>`).join('')}</select></label>
+    </div>`;
+  }
+
+  // ------------------------------------------------------------ best practice
+  // Per-lift notes for the Explain sheet: [common mistakes, key tip].
+  const GUIDE = {
+    'bench-press': [['Bouncing the bar off your chest', 'Elbows flared straight out to 90°', 'Hips lifting off the bench'], 'Pull your shoulder blades back and down and keep them pinned for the whole set. Use a spotter or set the safety arms when it gets heavy.'],
+    'incline-bb-press': [['Bench set too steep (above 45° it turns into a shoulder press)', 'Lowering the bar to your neck instead of your upper chest', 'Hips lifting off the seat'], 'A 30° incline is plenty. Use the rack safeties or a spotter, since you can\'t dump an incline bar easily.'],
+    'incline-db-press': [['Bench set too steep, so your shoulders take over', 'Dumbbells drifting wide and low at the bottom', 'Clanking the weights together at the top'], 'Get into position by resting the dumbbells on your knees and kicking them up one at a time as you lie back.'],
+    'db-bench': [['Lowering so deep that your shoulders strain', 'Elbows flared straight out to the sides', 'Dropping the weights instead of lowering them'], 'Each arm works on its own, so watch that one side isn\'t pressing faster or higher than the other.'],
+    'push-up': [['Hips sagging or piking up', 'Elbows flaring straight out to the sides', 'Half reps that stop well above the floor'], 'Too hard? Put your hands on a bench. Too easy? Put your feet on the bench, or take 3 seconds to lower.'],
+    'diamond-push-up': [['Elbows flaring out instead of staying tight to your sides', 'Hips sagging', 'Hands too far forward (under your face, not your chest)'], 'This is much harder than a normal push-up. Do it from your knees or with hands on a bench until you can get 8 full reps.'],
+    'cable-fly': [['Bending your elbows more as you go, turning it into a press', 'Letting the cables yank your arms too far back', 'Swinging your body to move the weight'], 'Think "hug a big tree": keep the same soft elbow bend all the way and move only at the shoulder.'],
+    'pec-deck': [['Seat too low or high (the handles should be level with your chest)', 'Letting the weight stack slam between reps', 'Shoulders rolling forward off the pad'], 'Keep your chest up and your back on the pad. Pause for a second with the handles together.'],
+    'chest-dip': [['Dropping much deeper than upper arms parallel to the floor', 'Staying bolt upright (that shifts the work to the triceps)', 'Swinging your legs for momentum'], 'Lean your torso forward about 20–30° to target the chest. Use an assist machine or band until you can do 6 good reps.'],
+    'machine-chest-press': [['Seat set so the handles are at your neck or belly instead of mid-chest', 'Locking your elbows hard at the top', 'Shoulders rolling forward off the pad'], 'A safe place to learn pressing and push close to failure, since there\'s no bar to get stuck under.'],
+    'db-pullover': [['Bending your elbows more and more, turning it into a triceps extension', 'Arching your lower back to get the weight further back', 'Lowering further than your shoulders comfortably allow'], 'Keep your ribs down and hips level. You should feel a big stretch through your lats and chest at the bottom.'],
+    'lat-pulldown': [['Leaning way back and turning it into a row', 'Pulling the bar behind your neck', 'Letting the weight yank your arms up at the top'], 'Think "elbows down to your back pockets". Pull the bar to your upper chest and keep your chest proud.'],
+    'pull-up': [['Kipping or swinging your legs', 'Half reps that never reach a full hang', 'Shrugging your shoulders up to your ears'], 'Can\'t do one yet? Use an assist machine or band, or jump to the top and lower yourself slowly for 3–5 seconds.'],
+    'chin-up': [['Kipping or swinging your legs', 'Stopping short of a full hang at the bottom', 'Craning your neck to get your chin over the bar'], 'Slightly easier than a pull-up because the biceps help more. A good first bodyweight pull to learn.'],
+    'barbell-row': [['Standing too upright, which turns it into a shrug', 'Rounding your lower back', 'Jerking the weight up with your hips'], 'Keep your torso still. If you have to heave the bar, it\'s too heavy.'],
+    'db-bent-row': [['Standing too upright', 'Rounding your back', 'Pulling with your arms only instead of driving your elbows back'], 'Brace your core hard. Squeeze your shoulder blades together at the top of every rep.'],
+    'db-row': [['Twisting your torso to heave the weight up', 'Shrugging the shoulder toward your ear', 'Cutting the stretch short at the bottom'], 'Pull the dumbbell toward your hip, not your armpit. That puts the work into the lats.'],
+    'cable-row': [['Rocking your torso back and forth', 'Rounding your back as you reach forward', 'Pulling with your arms before your shoulder blades move'], 'Sit tall, start each rep by pulling your shoulders back, then finish with your arms.'],
+    'machine-row': [['Lifting your chest off the pad', 'Shrugging up toward your ears', 'Letting the stack slam between reps'], 'Pause for a second with your shoulder blades squeezed together at the back of each rep.'],
+    'deadlift': [['Rounding your lower back', 'Letting the bar drift away from your legs', 'Hips shooting up first so it becomes a stiff-leg pull', 'Leaning back hard at the top'], 'Push the floor away rather than pulling the bar up. Reset each rep on the floor. Start light: this is the lift most worth learning slowly.'],
+    'rdl': [['Rounding your back to reach lower', 'Bending your knees more and more, turning it into a squat', 'Letting the bar drift away from your legs'], 'Only go as low as you can with a flat back, usually just below the knee. Think "hips back", not "chest down".'],
+    'db-rdl': [['Rounding your back to reach lower', 'Squatting down instead of pushing your hips back', 'Letting the dumbbells swing forward away from your legs'], 'Keep the dumbbells brushing your legs the whole way. Stop when you feel a strong stretch in your hamstrings.'],
+    'straight-arm-pulldown': [['Bending your elbows and turning it into a pushdown', 'Leaning in and using bodyweight', 'Shrugging at the top'], 'Keep your arms long and think of sweeping the bar down to your thighs using your lats.'],
+    'face-pull': [['Using so much weight that you lean back', 'Pulling to your chest instead of your face', 'Elbows dropping below your shoulders'], 'Pull the rope apart as it reaches your face, ending like a double-biceps pose. Light weight, high reps.'],
+    'ohp': [['Leaning back hard and turning it into an incline press', 'Pressing the bar out in front instead of straight up', 'Not getting your head through at the top'], 'Squeeze your glutes and brace your core so your lower back doesn\'t arch. Move your head back slightly to let the bar pass.'],
+    'db-shoulder-press': [['Arching your lower back', 'Lowering only halfway', 'Banging the dumbbells together overhead'], 'Seated with back support is easiest to learn. Press up and slightly in so the weights finish over your shoulders.'],
+    'machine-shoulder-press': [['Seat too low, so you start with the handles above your head', 'Arching off the back pad', 'Locking the elbows hard'], 'Good for pushing close to failure safely. Keep your back flat on the pad the whole set.'],
+    'lateral-raise': [['Swinging the weights up with your body', 'Raising above shoulder height and shrugging', 'Going too heavy (these use small weights)'], 'Lead with your elbows, not your hands, as if pouring water out to the sides. Light weight, slow lowering.'],
+    'cable-lateral-raise': [['Leaning away from the stack to cheat the weight up', 'Shrugging the shoulder', 'Letting the cable snap your arm back down'], 'The cable keeps tension at the bottom where dumbbells don\'t. Go light and control every inch.'],
+    'front-raise': [['Swinging the weight with your hips', 'Raising well above shoulder height', 'Leaning back'], 'The front of the shoulder already works hard in presses, so a few light sets are enough.'],
+    'rear-delt-fly': [['Squeezing your shoulder blades together (that shifts the work to the upper back)', 'Using momentum to fling the weights', 'Going too heavy'], 'Think "arms out wide", not "squeeze back". Tiny weights are normal here.'],
+    'upright-row': [['Pulling the bar above chest height (this can pinch the shoulders)', 'A very narrow grip', 'Jerking the weight up'], 'Use a shoulder-width grip and stop at the bottom of your chest. Skip it if it hurts your shoulders.'],
+    'shrug': [['Rolling your shoulders in circles', 'Bending your elbows to help', 'Tiny bouncing reps'], 'Straight up toward your ears, pause for a second, straight down.'],
+    'barbell-curl': [['Swinging your hips to throw the bar up', 'Elbows drifting forward', 'Dropping the bar on the way down'], 'Pin your elbows to your sides. If you need to swing, drop the weight.'],
+    'db-curl': [['Swinging your body', 'Elbows drifting forward at the top', 'Rushing the lowering'], 'Turn your palm up as you curl, so your little finger finishes higher than your thumb.'],
+    'hammer-curl': [['Swinging your body', 'Letting the wrist bend', 'Elbows drifting forward'], 'Keep your thumbs pointing up the whole time. This also builds the forearm and the muscle under the biceps.'],
+    'preacher-curl': [['Lifting your elbows off the pad', 'Dropping fast into the bottom (hard on the elbow)', 'Not straightening fully'], 'The bottom stretch is where this lift works best and where it is riskiest. Lower slowly there.'],
+    'cable-curl': [['Leaning back to cheat the weight up', 'Elbows drifting forward', 'Letting the cable pull your arms straight fast'], 'The cable keeps tension the whole way. Squeeze hard at the top.'],
+    'incline-db-curl': [['Bringing your elbows forward off the bench line', 'Bench too upright (lose the stretch)', 'Swinging'], 'Let your arms hang straight down behind your body. The stretch at the bottom is the point of this lift.'],
+    'concentration-curl': [['Lifting the elbow off your thigh', 'Twisting your torso', 'Rushing'], 'A slow, strict finisher. Squeeze for a second at the top.'],
+    'tricep-pushdown': [['Elbows drifting forward and away from your sides', 'Leaning over the bar to push with bodyweight', 'Stopping short of locked out'], 'Pin your elbows to your sides and only move your forearms. Squeeze at the bottom.'],
+    'skull-crusher': [['Elbows flaring out wide', 'Moving your upper arms back and forth', 'Lowering fast toward your face'], 'Lower to just behind your forehead, not onto it. An EZ bar is kinder to the wrists.'],
+    'db-skull-crusher': [['Elbows flaring out', 'Upper arms moving', 'Lowering fast near your head'], 'Palms facing each other is usually the most comfortable for the elbows.'],
+    'overhead-extension': [['Elbows flaring wide', 'Arching your lower back', 'Shortening the range at the bottom'], 'Keep your elbows pointing forward and your ribs down. The deep stretch behind your head is where the long head works most.'],
+    'cable-overhead-extension': [['Elbows flaring wide', 'Arching your back to finish the rep', 'Letting the cable yank your arms back'], 'Stagger your feet and lean slightly forward for balance. Keep your upper arms still.'],
+    'close-grip-bench': [['Hands touching or very narrow (hard on the wrists)', 'Elbows flaring out', 'Bouncing off the chest'], 'Hands about shoulder-width is "close" enough. Keep your elbows tucked near your sides.'],
+    'bench-dip': [['Dropping too deep and straining the front of your shoulders', 'Shoulders shrugging up', 'Hips drifting away from the bench'], 'Stop when your upper arms are about parallel to the floor. Bend your knees to make it easier.'],
+    'kickback': [['Upper arm dropping as you extend', 'Swinging the weight', 'Going too heavy'], 'Keep your upper arm parallel to the floor and squeeze for a second at full lockout.'],
+    'back-squat': [['Knees caving inward', 'Heels lifting off the floor', 'Rounding your lower back at the bottom', 'Cutting depth short'], 'Squat inside a rack with the safety pins set just below your bottom position. Spread the floor with your feet.'],
+    'goblet-squat': [['Knees caving inward', 'Heels lifting', 'Letting the dumbbell pull your chest forward'], 'The best squat to learn on. Your elbows should brush the inside of your knees at the bottom.'],
+    'leg-press': [['Lowering until your lower back peels off the pad', 'Locking your knees hard at the top', 'Pushing through your toes'], 'Only go as deep as your hips stay down on the seat. Always set the safety catches.'],
+    'walking-lunge': [['Front knee caving inward', 'Steps too short so the knee shoots forward', 'Slamming the back knee into the floor'], 'Take a long enough step that both knees reach about 90°. Push through the front heel.'],
+    'bulgarian-split-squat': [['Front foot too close to the bench', 'Front knee caving inward', 'Bouncing off the back leg'], 'Find your foot position with no weight first. Lean forward slightly for more glutes, stay upright for more quads.'],
+    'leg-extension': [['Kicking the weight up', 'Letting the stack slam down', 'Hips lifting off the seat'], 'Line the machine\'s pivot up with your knee joint. Pause for a second at the top.'],
+    'leg-curl': [['Hips lifting off the seat', 'Letting the weight snap back', 'Going too heavy and cutting the range'], 'Point your toes up toward your shins to get more out of your hamstrings.'],
+    'hip-thrust': [['Arching your lower back at the top instead of using your glutes', 'Pushing through your toes', 'Bar rolling onto your stomach'], 'Tuck your chin and keep your ribs down. At the top, your shins should be vertical. Use a bar pad.'],
+    'glute-bridge': [['Arching your lower back to get higher', 'Feet too far from your hips', 'Rushing'], 'Squeeze your glutes hard for 2 seconds at the top. Add a dumbbell on your hips when it gets easy.'],
+    'calf-raise': [['Bouncing at the bottom', 'Half reps', 'Bending your knees to help'], 'Pause for a second at the bottom stretch and at the top. Calves respond well to slow, full reps.'],
+    'bw-calf-raise': [['Bouncing at the bottom', 'Half reps', 'Rushing'], 'Do one leg at a time when two legs gets easy.'],
+    'plank': [['Hips sagging', 'Hips piked high', 'Holding your breath'], 'Squeeze your glutes and pull your elbows toward your toes without moving them. A hard 20 seconds beats a sloppy minute.'],
+    'crunch': [['Pulling on your neck with your hands', 'Sitting all the way up (that\'s your hip flexors)', 'Rushing'], 'Think of curling your ribs toward your hips. The movement is small.'],
+    'hanging-leg-raise': [['Swinging', 'Only lifting your legs without tilting your pelvis', 'Dropping fast'], 'Start with bent knees. Curl your pelvis up at the top. That curl is what trains the abs.'],
+    'lying-leg-raise': [['Lower back arching off the floor', 'Dropping your legs fast', 'Using momentum'], 'Press your lower back into the floor the whole time. Bend your knees to make it easier.'],
+    'cable-crunch': [['Pulling with your arms', 'Sitting back onto your heels instead of curling', 'Going too heavy'], 'Keep your hips still and curl your ribs toward your hips.'],
+    'dead-bug': [['Lower back lifting off the floor', 'Moving too fast', 'Holding your breath'], 'Slow is the point. Breathe out as you reach, and only go as far as your back stays flat.'],
+    'mountain-climber': [['Hips bouncing up and down', 'Hands ahead of your shoulders', 'Sloppy speed'], 'Keep your shoulders over your hands and your hips level, like a moving plank.'],
+  };
+  const isCompound = (ex) => FULL_BAR.has(ex.id) || Object.values(Muscles.of(ex)).filter((v) => v >= 1).length >= 2 || Object.values(Muscles.of(ex)).filter((v) => v >= .5).length >= 4;
+
+  function explainView() {
+    const ex = getEx(ui.explain);
+    const g = GUIDE[ex.id];
+    const [lo, hi] = repRange(ex);
+    const comp = isCompound(ex);
+    const heavy = FULL_BAR.has(ex.id);
+    const breath = ex.timed ? 'Breathe steadily through your nose and mouth. Don\'t hold your breath. Brace as if someone is about to poke your stomach.'
+      : heavy ? 'Take a big breath into your belly and brace before each rep. Hold it through the hard part and breathe out at the top. This bracing protects your back.'
+      : 'Breathe in as you lower, and out as you push or pull through the hardest part. Keep your core lightly braced.';
+    const tempo = ex.timed ? null : 'Lower under control for about 2–3 seconds, pause briefly, then lift in about 1 second. No bouncing, no swinging.';
+    const rest = comp ? '2–3 minutes' : '60–90 seconds';
+    const prog = ex.timed ? 'Add 5–10 seconds per set each week. When a full minute feels easy, make it harder (for example, lift one foot).'
+      : ex.bw ? `Add reps until you get ${hi} on every set, then make it harder: slow the lowering, add a pause, or hold a weight.`
+      : `When you get ${hi} reps on every set with good form, add the smallest step (${step(ex)} ${unit()}) next time. Your reps will drop toward ${lo}; build back up and repeat.`;
+    const sec = (t, body) => body ? `<section class="xp-sec"><h3>${t}</h3>${body}</section>` : '';
+    const ul = (a) => `<ul>${a.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`;
+    return `<div class="sheet-backdrop" data-act="close-explain-bg">
+      <div class="sheet xp" role="dialog" aria-modal="true" aria-labelledby="xp-title">
+        <header class="sheet-head"><div><p class="eyebrow">How to do it well</p><h2 id="xp-title">${esc(ex.name)}</h2></div>
+          <button class="icon-btn" data-act="close-explain" aria-label="Close">✕</button></header>
+        <div class="xp-top">
+          <div class="xp-fig" data-fig="${esc(ex.id)}"></div>
+          <div class="xp-map">${Muscles.map(Muscles.of(ex))}<p class="works">${esc(worksText(ex, 4))}</p></div>
+        </div>
+        ${g ? `<p class="xp-tip"><b>Key tip</b> ${esc(g[1])}</p>` : ''}
+        ${sec('Step by step', ex.cues && ex.cues.length ? `<ol>${ex.cues.map((c) => `<li>${esc(c)}</li>`).join('')}</ol>` : '')}
+        ${sec('Common mistakes', g ? ul(g[0]) : '')}
+        ${sec('Sets, reps and effort', ul([
+          `${ex.sets || 3} sets of ${ex.reps || '8–12'}${ex.timed ? '' : ' reps'}, resting ${rest} between sets.`,
+          ex.timed ? 'Stop the set when your form starts to slip, not when the timer says so.' : 'End each set with 1–3 reps left in the tank: you could do a couple more with good form, but not many.',
+          comp && !ex.bw ? 'Warm up with 1–2 lighter sets (about half, then three-quarters of your working weight) before your first real set.' : 'One easy warm-up set is enough if the muscle is already warm.',
+        ]))}
+        ${sec('Breathing and speed', ul([breath].concat(tempo ? [tempo] : [])))}
+        ${sec('How to progress', `<p>${esc(prog)}</p>`)}
+        <p class="note xp-stop">Stop if you feel sharp or joint pain (as opposed to muscle burn). Lighten the weight or swap to a similar lift.</p>
+      </div></div>`;
+  }
+
+  // -------------------------------------------------------------- equipment
+  // Adjustable dumbbells, a bench and your bodyweight are always assumed.
+  // Everything else depends on where you are today.
+  const GEAR = {
+    free: { name: 'Free weight room', hint: 'Barbells, racks, pull-up and dip bars' },
+    cable: { name: 'Cable machines', hint: 'Pulleys with ropes and handles' },
+    machine: { name: 'Machines', hint: 'Leg press, chest press, rows and more' },
+  };
+  const BAR_LIFTS = new Set(['pull-up', 'chin-up', 'chest-dip', 'hanging-leg-raise']);
+  const gearOf = (e) => (e.equip === 'Barbell' || BAR_LIFTS.has(e.id) ? 'free' : e.equip === 'Cable' ? 'cable' : e.equip === 'Machine' ? 'machine' : null);
+  const gear = () => D.gear || { free: true, cable: true, machine: true };
+  const canDo = (e) => { const g = gearOf(e); return !g || !!gear()[g]; };
+  const availEx = () => allEx().filter(canDo);
+
+  function gearCard() {
+    const g = gear();
+    return `<section class="gear-card">
+      <h2>Today's equipment</h2>
+      <p class="sub">Adjustable dumbbells and a bench are always assumed. What else do you have?</p>
+      <div class="gear-list">${Object.keys(GEAR).map((k) => `<button class="gear${g[k] ? ' on' : ''}" data-act="toggle-gear" data-k="${k}" aria-pressed="${!!g[k]}">
+        <span class="gear-box" aria-hidden="true">${g[k] ? '✓' : ''}</span>
+        <span><b>${GEAR[k].name}</b><span class="muted">${GEAR[k].hint}</span></span></button>`).join('')}</div>
+    </section>`;
+  }
+
+  // ------------------------------------------------------------- plan logic
+
+
+  // How much a lift adds to areas that aren't yet fully worked (each area counts up to 1).
+  function gain(baseIds, exId, areas) {
+    const cur = Muscles.total(baseIds.map(getEx));
+    const next = Muscles.total(baseIds.concat(exId).map(getEx));
+    return areas.reduce((g, a) => g + Math.min(1, next[a] || 0) - Math.min(1, cur[a] || 0), 0);
+  }
+  const areasFor = (groups) => [].concat(...groups.map((g) => Muscles.GROUP_AREAS[g] || []));
+  const exIndex = (id) => { const i = allEx().findIndex((e) => e.id === id); return i < 0 ? 1e9 : i; };
+
+  // Pick ~6 lifts, taking turns across groups, each time choosing the lift that
+  // covers the most of that group's areas not already covered.
+  function buildPlan(groups) {
+    const pools = groups.map((g) => {
+      const ok = availEx().filter((e) => !e.custom);
+      const main = ok.filter((e) => e.groups[0] === g);
+      // short on equipment: borrow lifts that work this group as a secondary target
+      return (main.length >= 4 ? main : main.concat(ok.filter((e) => e.groups[0] !== g && e.groups.includes(g)))).map((e) => e.id);
+    });
+    const plan = [];
+    let i = 0, guard = 0;
+    while (plan.length < 6 && pools.some((p) => p.length) && guard++ < 200) {
+      const gi = i++ % pools.length, p = pools[gi];
+      if (!p.length) continue;
+      const areas = Muscles.GROUP_AREAS[groups[gi]] || [];
+      let best = p[0], bs = -1;
+      p.forEach((id) => { const g = gain(plan, id, areas); if (g > bs + 1e-9) { bs = g; best = id; } });
+      p.splice(p.indexOf(best), 1);
+      if (!plan.includes(best)) plan.push(best);
+    }
+    return plan.sort((a, b) => exIndex(a) - exIndex(b));
+  }
+
+  // Swap: replace a lift with the one that works the most similar muscles,
+  // preferring different equipment (the usual reason to swap is "I don't have that").
+  // Each lift remembers the chain of lifts swapped away to reach it, so pressing
+  // Swap again moves on to the next-best option and avoids equipment already passed over.
+  const swapChain = {};
+  function similarity(a, b) {
+    const va = Muscles.of(a), vb = Muscles.of(b);
+    let dot = 0, na = 0, nb = 0;
+    Object.keys(va).forEach((k) => { na += va[k] * va[k]; dot += va[k] * (vb[k] || 0); });
+    Object.keys(vb).forEach((k) => { nb += vb[k] * vb[k]; });
+    return na && nb ? dot / Math.sqrt(na * nb) : 0;
+  }
+  function nextAlt(currentId, taken) {
+    const chain = [...(swapChain[currentId] || []), currentId];
+    const origin = getEx(chain[0]);
+    const ov = Muscles.of(origin);
+    const main = Object.keys(ov).filter((a) => ov[a] >= 1);
+    const avoidEquip = new Set(chain.map((id) => getEx(id).equip));
+    // must work the same main muscle (or be from the same group and closely matched)
+    const fits = (e) => {
+      const v = Muscles.of(e);
+      const sameMain = main.some((a) => (v[a] || 0) >= 1);
+      const sim = similarity(origin, e);
+      return sameMain ? sim > 0.4 : e.groups[0] === origin.groups[0] && sim > 0.6;
+    };
+    const score = (e) => similarity(origin, e) + (e.groups[0] === origin.groups[0] ? 0.2 : 0) + (avoidEquip.has(e.equip) ? -0.15 : 0.05);
+    const open = (e) => e.id !== currentId && !taken.includes(e.id) && fits(e) && (canDo(e) || e.id === origin.id);
+    let cands = allEx().filter((e) => open(e) && !chain.includes(e.id));
+    if (!cands.length) {
+      // every close match has been offered: cycle back round, starting with the original
+      cands = allEx().filter(open);
+      cands.sort((x, y) => (canDo(y) - canDo(x)) || (y.id === origin.id) - (x.id === origin.id) || score(y) - score(x));
+      if (!cands.length) return null;
+      const best = cands[0].id;
+      if (best !== origin.id) swapChain[best] = [origin.id];
+      return best;
+    }
+    cands.sort((x, y) => score(y) - score(x));
+    const best = cands[0].id;
+    swapChain[best] = chain;
+    return best;
+  }
+  // Undo puts the old lift back, as long as nothing has changed that slot since.
+  function planSwapped(i, from, to, verb = 'Swapped to') {
+    toast(`${verb} ${getEx(to).name}`, () => {
+      if (ui.plan[i] !== to) return;
+      ui.plan[i] = from;
+      toast(`Back to ${getEx(from).name}`);
+      render();
+    });
+  }
+  function woSwapped(idx, oldItem, newIt, verb = 'Swapped to') {
+    const A = D.active;
+    toast(`${verb} ${getEx(newIt.exId).name}`, () => {
+      if (D.active !== A || A.items[idx] !== newIt || newIt.sets.some((x) => x.done)) { toast('Can\'t undo: sets already logged'); return; }
+      A.items[idx] = oldItem;
+      A.idx = idx;
+      ui.rest = null;
+      toast(`Back to ${getEx(oldItem.exId).name}`);
+      save(); render();
+    });
+  }
+
+  // Per-area coverage of the selected groups for a list of lifts.
+  function coverage(ids, groups) {
+    const cur = Muscles.total(ids.map(getEx));
+    return groups.filter((g) => Muscles.GROUP_AREAS[g]).map((g) => ({
+      g,
+      areas: Muscles.GROUP_AREAS[g].map((a) => {
+        const v = cur[a] || 0;
+        const by = ids.filter((id) => (Muscles.of(getEx(id))[a] || 0) >= .5)
+          .sort((x, y) => (Muscles.of(getEx(y))[a] || 0) - (Muscles.of(getEx(x))[a] || 0));
+        return { a, v, by, state: v >= 1 ? 'hit' : v >= .5 ? 'light' : 'miss' };
+      }),
+    }));
+  }
+
+  // Best lifts to fill an area, favouring the day's muscle groups.
+  function suggestFor(area, taken, groups) {
+    return availEx().filter((e) => !taken.includes(e.id) && (Muscles.of(e)[area] || 0) >= 1)
+      .sort((x, y) => (groups.includes(y.groups[0]) ? 1 : 0) - (groups.includes(x.groups[0]) ? 1 : 0))
+      .slice(0, 2);
+  }
+
+  const worksText = (ex, n = 3) => Muscles.list(Muscles.of(ex)).slice(0, n).map((a) => Muscles.AREAS[a]).join(' · ');
+
+  function coverageCard(ids, groups) {
+    const cov = coverage(ids, groups);
+    if (!cov.length) return '';
+    const all = [].concat(...cov.map((c) => c.areas));
+    const hit = all.filter((x) => x.state === 'hit').length;
+    const gaps = all.filter((x) => x.state !== 'hit');
+    const icon = { hit: '✓', light: '◐', miss: '✕' };
+    const word = { hit: 'Worked', light: 'A little', miss: 'Missed' };
+    const vals = Muscles.total(ids.map(getEx));
+    const gname = esc(groups.map(groupName).join(' + ').toLowerCase());
+    return `<section class="card cov">
+      <div class="cov-head"><h2>Muscle coverage</h2><span class="cov-score${gaps.length ? '' : ' full'}">${hit} of ${all.length} areas</span></div>
+      <p class="sub">${gaps.length
+        ? `To work all of ${gname}, add or swap in a lift for the ${gaps.length === 1 ? 'area' : 'areas'} not checked off below.`
+        : `Nice balance: every part of ${gname} gets direct work today.`}</p>
+      <div class="cov-body">
+        <div class="cov-map">${Muscles.map(vals)}
+          <div class="hm-key"><span><i style="background:var(--hm-3)"></i>Main</span><span><i style="background:var(--hm-2)"></i>Some</span><span><i style="background:var(--hm-1)"></i>Light</span></div></div>
+        <div class="cov-list">${cov.map((c) => `
+          <h3>${esc(groupName(c.g))}</h3>
+          <ul>${c.areas.map((x) => {
+            const sug = x.state === 'hit' ? [] : suggestFor(x.a, ids, groups);
+            return `<li class="cv-${x.state}"><span class="cv-ic" aria-hidden="true">${icon[x.state]}</span>
+              <span class="cv-txt"><b>${esc(Muscles.AREAS[x.a])}</b> <span class="cv-state">${word[x.state]}</span>
+              ${x.by.length ? `<span class="cv-by">${esc(x.by.slice(0, 2).map((id) => getEx(id).name).join(', '))}</span>` : ''}
+              ${sug.length ? `<span class="cv-sug">Try ${sug.map((e) => `<button class="chip small" data-act="cov-add" data-id="${esc(e.id)}">+ ${esc(e.name)}</button>`).join(' ')}</span>` : ''}</span></li>`;
+          }).join('')}</ul>`).join('')}
+        </div>
+      </div>
+    </section>`;
+  }
+
+  const newItem = (exId) => ({ exId, sets: Array.from({ length: getEx(exId).sets || 3 }, () => ({ w: '', r: '', done: false })), skipped: false });
+  const itemDone = (it) => it.skipped || (it.sets.length > 0 && it.sets.every((s) => s.done));
+
+  // ---------------------------------------------------------------- render
+  function render() {
+    tabsEl.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-current', b.dataset.tab === ui.tab ? 'page' : 'false'));
+    let html = '';
+    if (ui.tab === 'train') {
+      if (D.active) html = workoutView();
+      else if (ui.summary) html = summaryView();
+      else if (ui.step === 'plan') html = planView();
+      else html = groupsView();
+    } else if (ui.tab === 'progress') html = progressView();
+    else html = historyView();
+    if (ui.picker) html += pickerView();
+    if (ui.explain) html += explainView();
+    app.innerHTML = html;
+    document.body.classList.toggle('has-sheet', !!(ui.picker || ui.explain));
+
+    app.querySelectorAll('[data-fig]').forEach((el, i) => {
+      Figure.mount(el, getEx(el.dataset.fig), { static: el.dataset.static === '1', u: 1, offset: i * 450 });
+    });
+    if (ui.tab === 'progress') drawCharts();
+    tickClock();
+    if (ui.justFinishedLift) {
+      ui.justFinishedLift = false;
+      const n = document.getElementById('next-cta');
+      if (n) n.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function groupsView() {
+    const today = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+    const thumbs = { chest: 'bench-press', back: 'lat-pulldown', shoulders: 'lateral-raise', biceps: 'db-curl', triceps: 'tricep-pushdown', legs: 'back-squat', core: 'crunch' };
+    return `
+      <header class="top"><p class="eyebrow">${esc(today)}</p><h1>What are we training?</h1>
+      <p class="sub">Pick one muscle group, or a few for a combined day.</p></header>
+      <div class="group-grid">
+        ${GROUPS.map((g) => {
+          const n = ui.groups.indexOf(g.id);
+          return `<button class="group${n >= 0 ? ' on' : ''}" data-act="toggle-group" data-id="${g.id}" aria-pressed="${n >= 0}">
+            <span class="g-fig" data-fig="${thumbs[g.id]}" data-static="1"></span>
+            <span class="g-name">${g.name}</span>
+            <span class="g-meta">${esc(lastTrained(g.id))}</span>
+            ${n >= 0 ? `<span class="g-check" aria-hidden="true">✓</span>` : ''}
+          </button>`;
+        }).join('')}
+      </div>
+      ${gearCard()}
+      <div class="cta-bar"><button class="btn primary block" data-act="build" ${ui.groups.length ? '' : 'disabled'}>
+        ${ui.groups.length ? `Build ${esc(ui.groups.map(groupName).join(' + '))} workout` : 'Select a muscle group'}</button></div>`;
+  }
+
+  function planView() {
+    return `
+      <header class="top row"><button class="icon-btn" data-act="back-groups" aria-label="Back">‹</button>
+        <div><p class="eyebrow">${esc(ui.groups.map(groupName).join(' + '))}</p><h1>Today's lifts</h1></div></header>
+      <p class="sub pad">No equipment for a lift? Tap <b>Swap</b> for one that works the same muscles with different gear. Tap again for the next option, or <b>Choose</b> to pick anything.</p>
+      <div class="lift-list">
+        ${ui.plan.map((id, i) => {
+          const ex = getEx(id);
+          const last = lastLine(id);
+          return `<article class="lift-card">
+            <div class="lc-side"><div class="thumb" data-fig="${esc(id)}"></div>
+              <div class="lc-map">${Muscles.map(Muscles.of(ex), { mini: true })}</div></div>
+            <div class="lc-body">
+              <h3>${esc(ex.name)}</h3>
+              <p class="meta">${esc(ex.equip || 'Custom')} · ${ex.sets || 3} × ${esc(ex.reps || '8–12')}</p>
+              <p class="works">${esc(worksText(ex))}</p>
+              ${last ? `<p class="last"><span>Last</span> ${esc(last)}</p>` : `<p class="last new">New lift${(() => { const e = startWeight(id); return e && e.w ? ` · try ~${fmtNum(e.w)} ${unit()}` : ''; })()}</p>`}
+              <div class="lc-actions">
+                <button class="chip" data-act="explain" data-id="${esc(id)}" title="Best practice for this lift">ⓘ Explain</button>
+                <button class="chip" data-act="plan-swap" data-i="${i}" title="Swap for a similar lift">⇄ Swap</button>
+                <button class="chip" data-act="open-picker" data-mode="plan-replace" data-i="${i}">Choose…</button>
+                <button class="chip ghost" data-act="plan-remove" data-i="${i}" aria-label="Remove ${esc(ex.name)}" title="Remove">✕</button>
+              </div>
+            </div>
+          </article>`;
+        }).join('') || '<p class="empty">No lifts yet. Add one below.</p>'}
+      </div>
+      <button class="btn ghost block add" data-act="open-picker" data-mode="plan-add">+ Add another exercise</button>
+      ${coverageCard(ui.plan, ui.groups)}
+      <div class="cta-bar"><button class="btn primary block" data-act="start" ${ui.plan.length ? '' : 'disabled'}>Start workout · ${ui.plan.length} lifts</button></div>`;
+  }
+
+  function workoutView() {
+    const A = D.active;
+    const it = A.items[A.idx];
+    const ex = getEx(it.exId);
+    const last = Store.lastEntry(D, it.exId);
+    const done = itemDone(it);
+    const nextIdx = A.items.findIndex((x, i) => i !== A.idx && !itemDone(x));
+    const allDone = A.items.every(itemDone);
+    const doneCount = A.items.filter(itemDone).length;
+    const wLabel = ex.bw ? `+${unit()}` : unit();
+    const rLabel = ex.timed ? 'Sec' : 'Reps';
+    const est = last ? null : startWeight(ex.id);
+    // on a new lift, the last finished set tells us what the next one should be
+    const lastDone = [...it.sets].reverse().find((x) => x.done);
+    const cal = !last && !ex.bw && !ex.timed && lastDone ? calibrate(ex, lastDone) : null;
+
+    const rows = it.sets.map((s, i) => {
+      const prev = last && (last.sets[i] || last.sets[last.sets.length - 1]);
+      const above = it.sets[i - 1];
+      const phW = prev ? fmtNum(prev.w) : cal && !s.done ? fmtNum(cal.w)
+        : above && above.w !== '' ? above.w : ex.bw ? '0' : est && est.w ? fmtNum(est.w) : '';
+      const phR = prev ? prev.r : above && above.r !== '' ? above.r : repTarget(ex);
+      return `<div class="set-row${s.done ? ' done' : ''}">
+        <span class="set-n">${i + 1}</span>
+        <span class="prev">${prev ? esc(setStr(prev, ex)) : '—'}</span>
+        <input type="number" inputmode="decimal" step="any" min="0" aria-label="Set ${i + 1} weight" data-set="${i}" data-k="w" value="${esc(s.w)}" placeholder="${esc(phW)}" ${s.done ? 'readonly' : ''}>
+        <input type="number" inputmode="numeric" step="1" min="0" aria-label="Set ${i + 1} ${rLabel.toLowerCase()}" data-set="${i}" data-k="r" value="${esc(s.r)}" placeholder="${esc(phR)}" ${s.done ? 'readonly' : ''}>
+        <button class="check" data-act="toggle-set" data-s="${i}" aria-pressed="${s.done}" aria-label="${s.done ? 'Undo' : 'Complete'} set ${i + 1}">✓</button>
+      </div>`;
+    }).join('');
+
+    let cta;
+    if (allDone) cta = `<button id="next-cta" class="btn primary block" data-act="finish">Finish workout</button>`;
+    else if (done && nextIdx >= 0) cta = `<button id="next-cta" class="btn primary block" data-act="goto" data-i="${nextIdx}">Next: ${esc(getEx(A.items[nextIdx].exId).name)} →</button>`;
+    else if (it.sets.some((s) => s.done)) cta = `<div class="split">
+        <button class="btn ghost" data-act="wo-skip">Skip remaining sets</button>
+        <button class="btn ghost" data-act="open-picker" data-mode="wo-add">+ Add a lift</button></div>`;
+    else cta = `<div class="split">
+        <button class="btn ghost" data-act="wo-swap" title="Swap for a lift that works the same muscles">⇄ Swap lift</button>
+        <button class="btn ghost" data-act="open-picker" data-mode="wo-replace">Choose another</button></div>
+        <button class="link muted-link" data-act="wo-skip">Skip this lift</button>`;
+
+    return `
+      <header class="top row wo-head">
+        <div><p class="eyebrow">${esc((A.groups || []).map(groupName).join(' + ') || 'Workout')} · <span data-elapsed></span></p>
+        <h1>Lift ${A.idx + 1} of ${A.items.length}</h1></div>
+        <button class="btn small" data-act="finish">Finish</button>
+      </header>
+      <ol class="dots" aria-label="Workout progress">
+        ${A.items.map((x, i) => `<li><button data-act="goto" data-i="${i}" class="dot${i === A.idx ? ' cur' : ''}${itemDone(x) ? (x.skipped ? ' skip' : ' ok') : ''}" aria-label="${esc(getEx(x.exId).name)}${itemDone(x) ? ' (done)' : ''}"></button></li>`).join('')}
+      </ol>
+
+      <section class="card ex-card">
+        <div class="ex-fig" data-fig="${esc(ex.id)}"></div>
+        <div class="ex-info">
+          <h2>${esc(ex.name)}</h2>
+          <p class="meta">${esc(ex.equip || 'Custom')} · Target ${ex.sets || 3} × ${esc(ex.reps || '8–12')}</p>
+          <button class="chip small xp-btn" data-act="explain" data-id="${esc(ex.id)}">ⓘ Explain this lift</button>
+          <div class="ex-map">${Muscles.map(Muscles.of(ex))}</div>
+          <p class="works">${Muscles.list(Muscles.of(ex)).slice(0, 4).map((a, i) => i ? esc(Muscles.AREAS[a]) : `<b>${esc(Muscles.AREAS[a])}</b>`).join(' · ')}</p>
+        </div>
+        ${ex.cues && ex.cues.length ? `<details class="howto" ${last ? '' : 'open'}><summary>How to do it</summary><ol>${ex.cues.map((c) => `<li>${esc(c)}</li>`).join('')}</ol></details>` : ''}
+      </section>
+
+      <section class="card">
+        ${last ? `<div class="lasttime"><span class="lt-label">Last time · ${esc(agoText(last.date))}</span><span class="lt-sets">${last.sets.map((s) => `<b>${esc(setStr(s, ex))}</b>`).join('')}</span></div>`
+               : `<div class="lasttime new"><p class="lt-label">${startText(est, ex)}</p>${est && est.from && est.from !== 'lifts' && !it.sets.some((x) => x.done) ? profileForm() : ''}</div>`}
+        ${cal && !done ? `<p class="cal">Next set: <b>${fmtNum(cal.w)} ${unit()}</b> · ${esc(cal.why)}</p>` : ''}
+        <div class="sets">
+          <div class="set-head"><span>Set</span><span>Previous</span><span>${esc(wLabel)}</span><span>${rLabel}</span><span></span></div>
+          ${rows}
+        </div>
+        <div class="set-tools">
+          <button class="link" data-act="add-set">+ Add set</button>
+          ${it.sets.length > 1 ? `<button class="link" data-act="remove-set">− Remove set</button>` : ''}
+        </div>
+        ${ui.rest ? `<div class="rest" id="rest"><span>Rest</span><b id="rest-t">0:00</b><div class="rest-bar"><i id="rest-bar"></i></div><button class="link" data-act="rest-add">+30s</button><button class="link" data-act="rest-skip">Skip</button></div>` : ''}
+      </section>
+
+      <div class="wo-cta">${cta}</div>
+
+      <section class="card upnext">
+        <h3>Today's lifts <span class="muted">${doneCount}/${A.items.length}</span></h3>
+        <ul>${A.items.map((x, i) => {
+          const e = getEx(x.exId);
+          const n = x.sets.filter((s) => s.done).length;
+          const state = x.skipped ? 'Skipped' : itemDone(x) ? 'Done' : n ? `${n}/${x.sets.length} sets` : `${x.sets.length} sets`;
+          return `<li class="${i === A.idx ? 'cur' : ''}"><button data-act="goto" data-i="${i}"><span>${esc(e.name)}</span><span class="muted">${state}</span></button></li>`;
+        }).join('')}</ul>
+        <button class="link" data-act="open-picker" data-mode="wo-add">+ Add exercise</button>
+        <button class="link danger" data-act="discard">Discard workout</button>
+      </section>`;
+  }
+
+  function summaryView() {
+    const s = ui.summary;
+    return `
+      <header class="top"><p class="eyebrow">Workout complete</p><h1>Nice work.</h1></header>
+      <div class="tiles">
+        <div class="tile"><span>Time</span><b>${s.duration} min</b></div>
+        <div class="tile"><span>Sets</span><b>${s.sets}</b></div>
+        <div class="tile"><span>Volume</span><b>${Charts.num(s.volume)} ${unit()}</b></div>
+      </div>
+      ${s.prs.length ? `<section class="card pr"><h2>New personal bests</h2><ul>${s.prs.map((p) => `<li><b>${esc(p.name)}</b><span>Est. 1RM ${fmtNum(Math.round(p.now))} ${unit()} <em>(was ${fmtNum(Math.round(p.was))})</em></span></li>`).join('')}</ul></section>` : ''}
+      <section class="card"><h2>What you did</h2><ul class="hist-sets">${s.entries.map((e) => `<li><b>${esc(e.name)}</b><span>${e.sets.map((x) => esc(setStr(x, getEx(e.exId)))).join(', ')}</span></li>`).join('')}</ul></section>
+      <div class="cta-bar"><button class="btn primary block" data-act="summary-done">Done</button>
+      <button class="btn ghost block" data-act="tab" data-tab="progress">See progress</button></div>`;
+  }
+
+  // -------------------------------------------------------------- progress
+  function weekStart(d) {
+    const x = new Date(d); x.setHours(0, 0, 0, 0);
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x;
+  }
+
+  function loggedExercises() {
+    const ids = [];
+    [...D.sessions].sort(Store.byDate).reverse().forEach((s) => s.entries.forEach((e) => { if (!ids.includes(e.exId)) ids.push(e.exId); }));
+    return ids;
+  }
+
+  function metricsFor(exId) {
+    const s = Store.series(D, exId);
+    const bw = s.length && s.every((p) => p.top === 0);
+    return bw ? [['reps', getEx(exId).timed ? 'Longest hold' : 'Most reps'], ['totalReps', getEx(exId).timed ? 'Total time' : 'Total reps']]
+              : [['e1rm', 'Est. 1RM'], ['top', 'Heaviest set'], ['vol', 'Volume']];
+  }
+
+  function progressView() {
+    if (!D.sessions.length) {
+      return `<header class="top"><h1>Progress</h1></header>
+        <section class="card empty-state"><h2>No workouts yet</h2><p>Finish a workout and your lifts will show up here as charts.</p>
+        <button class="btn ghost" data-act="sample">Load sample data to preview</button></section>`;
+    }
+    const now = new Date();
+    const wk = weekStart(now);
+    const thisWeek = D.sessions.filter((s) => new Date(s.date) >= wk).length;
+    const d30 = new Date(now - 30 * 864e5);
+    const vol30 = D.sessions.filter((s) => new Date(s.date) >= d30).reduce((t, s) => t + Store.sessionVolume(s), 0);
+    const ids = loggedExercises();
+    if (!ui.progEx || !ids.includes(ui.progEx)) ui.progEx = ids[0];
+    const mets = metricsFor(ui.progEx);
+    if (!mets.some((m) => m[0] === ui.metric)) ui.metric = mets[0][0];
+    const series = Store.series(D, ui.progEx);
+    const ex = getEx(ui.progEx);
+    const first = series[0], lastP = series[series.length - 1];
+    const delta = series.length > 1 ? lastP[ui.metric] - first[ui.metric] : 0;
+
+    return `
+      <header class="top"><h1>Progress</h1></header>
+      <div class="tiles">
+        <div class="tile"><span>Workouts</span><b>${D.sessions.length}</b></div>
+        <div class="tile"><span>This week</span><b>${thisWeek}</b></div>
+        <div class="tile"><span title="Total weight lifted, last 30 days">30-day lb</span><b>${Charts.num(vol30)}</b></div>
+      </div>
+
+      <section class="card">
+        <div class="card-head"><div><h2>${esc(ex.name)}</h2>
+          <p class="sub">${series.length} session${series.length === 1 ? '' : 's'}${series.length > 1 ? ` · <span class="${delta >= 0 ? 'up' : 'down'}">${delta >= 0 ? '▲' : '▼'} ${fmtNum(Math.abs(Math.round(delta * 10) / 10))}${ui.metric === 'totalReps' || ui.metric === 'reps' ? '' : ' ' + unit()}</span> since ${shortDate(first.date)}` : ''}</p></div>
+        </div>
+        <label class="field"><span class="sr">Exercise</span>
+          <select id="prog-ex">${ids.map((id) => `<option value="${esc(id)}" ${id === ui.progEx ? 'selected' : ''}>${esc(getEx(id).name)}</option>`).join('')}</select></label>
+        <div class="seg" role="tablist">${mets.map(([k, l]) => `<button role="tab" aria-selected="${k === ui.metric}" data-act="metric" data-m="${k}">${l}</button>`).join('')}</div>
+        <div id="ch-ex" class="chart"></div>
+        <p class="note">${ui.metric === 'e1rm' ? 'Estimated one-rep max from your best set each session (weight × (1 + reps ÷ 30)).' : ui.metric === 'vol' ? 'Weight × reps, added up across all sets in the session.' : ui.metric === 'top' ? 'The heaviest weight you used that session.' : ''}</p>
+        <details class="table-view"><summary>Show as table</summary>
+          <table><thead><tr><th>Date</th><th>Sets</th><th>${esc(mets.find((m) => m[0] === ui.metric)[1])}</th></tr></thead>
+          <tbody>${[...series].reverse().map((p) => `<tr><td>${shortDate(p.date)}</td><td>${p.sets.map((s) => esc(setStr(s, ex))).join(', ')}</td><td>${fmtNum(Math.round(p[ui.metric] * 10) / 10)}</td></tr>`).join('')}</tbody></table>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>Weekly volume</h2>
+        <p class="sub">Total weight lifted (weight × reps) per week, last 12 weeks</p>
+        <div id="ch-week" class="chart"></div>
+      </section>`;
+  }
+
+  function drawCharts() {
+    const exEl = document.getElementById('ch-ex');
+    if (exEl) {
+      const series = Store.series(D, ui.progEx);
+      const isReps = ui.metric === 'reps' || ui.metric === 'totalReps';
+      const ex = getEx(ui.progEx);
+      Charts.line(exEl, series.map((p) => ({ x: p.date, y: Math.round(p[ui.metric] * 10) / 10, note: p.sets.map((s) => setStr(s, ex)).join(', ') })),
+        { unit: isReps ? (ex.timed ? 's' : 'reps') : unit(), label: `${ex.name} progress` });
+    }
+    const wkEl = document.getElementById('ch-week');
+    if (wkEl) {
+      const start = weekStart(new Date());
+      const weeks = [];
+      for (let i = 11; i >= 0; i--) { const d = new Date(start); d.setDate(d.getDate() - i * 7); weeks.push({ d, y: 0, n: 0 }); }
+      D.sessions.forEach((s) => {
+        const ws = +weekStart(new Date(s.date));
+        const w = weeks.find((x) => +x.d === ws);
+        if (w) { w.y += Store.sessionVolume(s); w.n++; }
+      });
+      Charts.bars(wkEl, weeks.map((w) => ({ y: Math.round(w.y), label: Charts.dlabel(w.d), tip: `Week of ${Charts.dlabel(w.d)} · ${w.n} workout${w.n === 1 ? '' : 's'}` })),
+        { unit: unit(), label: 'Weekly volume', empty: 'No workouts in the last 12 weeks' });
+    }
+  }
+
+  // --------------------------------------------------------------- history
+  function historyView() {
+    const list = [...D.sessions].sort(Store.byDate).reverse();
+    return `
+      <header class="top"><h1>History</h1></header>
+      ${list.length ? `<ul class="hist">${list.map((s) => {
+        const open = ui.open[s.id];
+        return `<li class="card hist-item">
+          <button class="hist-head" data-act="hist-toggle" data-id="${s.id}" aria-expanded="${!!open}">
+            <span><b>${esc(new Date(s.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }))}</b>
+            <span class="muted">${esc((s.groups || []).map(groupName).join(' + '))}</span></span>
+            <span class="muted">${s.entries.length} lifts · ${Charts.num(Store.sessionVolume(s))} ${unit()}</span>
+          </button>
+          ${open ? `<ul class="hist-sets">${s.entries.map((e) => `<li><b>${esc(e.name)}</b><span>${e.sets.map((x) => esc(setStr(x, getEx(e.exId)))).join(', ')}</span></li>`).join('')}</ul>
+            <button class="link danger" data-act="hist-delete" data-id="${s.id}">Delete this workout</button>` : ''}
+        </li>`;
+      }).join('')}</ul>` : `<section class="card empty-state"><h2>Nothing logged yet</h2><p>Your finished workouts will be listed here.</p></section>`}
+
+      <section class="card settings">
+        <h2>Settings</h2>
+        <label class="field row"><span>Weight units</span>
+          <select id="set-units"><option value="lb" ${D.units === 'lb' ? 'selected' : ''}>Pounds (lb)</option><option value="kg" ${D.units === 'kg' ? 'selected' : ''}>Kilograms (kg)</option></select></label>
+        <label class="field row"><span>Rest timer</span>
+          <select id="set-rest">${[0, 45, 60, 90, 120, 180].map((n) => `<option value="${n}" ${D.rest === n ? 'selected' : ''}>${n ? (n < 60 ? `${n} sec` : `${n / 60} min`).replace('1.5 min', '1:30') : 'Off'}</option>`).join('')}</select></label>
+        <label class="field row"><span>Bodyweight</span>
+          <input id="set-bw" type="number" inputmode="decimal" min="0" step="any" value="${D.profile && D.profile.bw ? fmtNum(Math.round(profileBw())) : ''}" placeholder="${unit()}"></label>
+        <label class="field row"><span>Lifting experience</span>
+          <select id="set-exp">${Object.keys(EXP).map((k) => `<option value="${k}" ${((D.profile || {}).exp || 'new') === k ? 'selected' : ''}>${EXP[k].name}</option>`).join('')}</select></label>
+        <p class="note">Bodyweight and experience are only used to suggest a starting weight for lifts you haven't logged yet.</p>
+        <p class="note">Your data is saved in this browser only. Export a backup to move it to another device.</p>
+        <div class="btn-row">
+          <button class="btn ghost small" data-act="export">Export backup</button>
+          <label class="btn ghost small">Import backup<input type="file" id="import" accept="application/json" hidden></label>
+          ${D.sessions.length ? '' : '<button class="btn ghost small" data-act="sample">Load sample data</button>'}
+          <button class="btn ghost small danger" data-act="reset">Erase all data</button>
+        </div>
+      </section>`;
+  }
+
+  // ---------------------------------------------------------------- picker
+  function pickerView() {
+    const p = ui.picker;
+    return `<div class="sheet-backdrop" data-act="close-picker-bg">
+      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pk-title">
+        <header class="sheet-head"><h2 id="pk-title">${p.mode.endsWith('add') ? 'Add an exercise' : 'Pick a replacement'}</h2>
+          <button class="icon-btn" data-act="close-picker" aria-label="Close">✕</button></header>
+        <input type="search" id="pk-q" placeholder="Search exercises" value="${esc(p.q || '')}" autocomplete="off">
+        <div class="chips-row">
+          <button class="chip${!p.g ? ' on' : ''}" data-act="pk-group" data-g="">All</button>
+          ${GROUPS.map((g) => `<button class="chip${p.g === g.id ? ' on' : ''}" data-act="pk-group" data-g="${g.id}">${g.name}</button>`).join('')}
+        </div>
+        <ul class="pk-list" id="pk-list">${pickerList()}</ul>
+        <details class="custom"><summary>Create your own exercise</summary>
+          <form id="pk-custom" class="custom-form">
+            <label class="field"><span>Name</span><input name="name" required maxlength="60" placeholder="e.g. Landmine Press"></label>
+            <label class="field"><span>Muscle group</span><select name="group">${GROUPS.map((g) => `<option value="${g.id}" ${(p.g || ui.groups[0] || (D.active && D.active.groups[0])) === g.id ? 'selected' : ''}>${g.name}</option>`).join('')}</select></label>
+            <label class="field"><span>Equipment</span><select name="equip">${['Barbell', 'Dumbbell', 'Cable', 'Machine', 'Bodyweight', 'Other'].map((e) => `<option>${e}</option>`).join('')}</select></label>
+            <button class="btn primary block" type="submit">Create and add</button>
+          </form>
+        </details>
+      </div></div>`;
+  }
+
+  function pickerList() {
+    const p = ui.picker;
+    const q = (p.q || '').trim().toLowerCase();
+    const plan = p.mode.startsWith('plan');
+    const taken = plan ? ui.plan : D.active ? D.active.items.map((x) => x.exId) : [];
+    // gaps = areas of today's groups that the other lifts don't fully work yet
+    const groups = (plan ? ui.groups : D.active && D.active.groups) || [];
+    const replacing = p.mode.endsWith('replace') ? (plan ? ui.plan[p.i] : D.active && D.active.items[D.active.idx].exId) : null;
+    const cur = Muscles.total(taken.filter((id) => id !== replacing).map(getEx));
+    const gapAreas = areasFor(groups).filter((a) => (cur[a] || 0) < 1);
+    const fills = (e) => gapAreas.filter((a) => (Muscles.of(e)[a] || 0) >= .5 && (Muscles.of(e)[a] || 0) > (cur[a] || 0));
+    let list = allEx().filter((e) => (!p.g || e.groups.includes(p.g)) && (!q || e.name.toLowerCase().includes(q) || (e.equip || '').toLowerCase().includes(q)));
+    if (!list.length) return `<li class="empty">No matches. Create your own below.</li>`;
+    list = list.map((e) => ({ e, f: canDo(e) ? fills(e) : [], t: taken.includes(e.id), no: !canDo(e) }));
+    list.sort((x, y) => (x.t - y.t) || (x.no - y.no) || (y.f.length ? 1 : 0) - (x.f.length ? 1 : 0));
+    const head = gapAreas.length && !q ? `<li class="pk-note">Not fully worked yet: <b>${esc(gapAreas.map((a) => Muscles.AREAS[a]).join(', '))}</b>. Lifts that help are listed first.</li>` : '';
+    const firstNo = list.findIndex((x) => x.no && !x.t);
+    return head + list.map(({ e, f, t, no }, i) => `${i === firstNo ? `<li class="pk-note">Needs equipment you didn't select today</li>` : ''}<li${no ? ' class="pk-no"' : ''}><button data-act="pick" data-id="${esc(e.id)}" ${t ? 'disabled' : ''}>
+      <span class="pk-fig" data-fig="${esc(e.id)}" data-static="1"></span>
+      <span class="pk-txt"><b>${esc(e.name)}</b><span class="muted">${esc(e.equip || 'Custom')} · ${esc(worksText(e, 2) || e.groups.map(groupName).join(', '))}${t ? ' · already added' : no ? ` · needs ${esc(GEAR[gearOf(e)].name.toLowerCase())}` : ''}</span>
+      ${f.length && !t ? `<span class="pk-fill">Fills gap: ${esc(f.map((a) => Muscles.AREAS[a]).join(', '))}</span>` : ''}</span>
+      <span class="pk-map">${Muscles.map(Muscles.of(e), { mini: true })}</span></button></li>`).join('');
+  }
+
+  function applyPick(id) {
+    const p = ui.picker;
+    if (p.mode === 'plan-add') ui.plan.push(id);
+    else if (p.mode === 'plan-replace') { const from = ui.plan[p.i]; ui.plan[p.i] = id; if (from && from !== id) planSwapped(p.i, from, id, 'Replaced with'); }
+    else if (p.mode === 'wo-add') { D.active.items.push(newItem(id)); save(); toast(`${getEx(id).name} added`); }
+    else if (p.mode === 'wo-replace') { const A = D.active, old = A.items[A.idx], it = newItem(id); A.items[A.idx] = it; ui.rest = null; save(); if (old.exId !== id) woSwapped(A.idx, old, it, 'Replaced with'); }
+    ui.picker = null;
+    render();
+  }
+
+  // --------------------------------------------------------------- actions
+  function currentItem() { return D.active.items[D.active.idx]; }
+
+  function startRest() {
+    if (!D.rest) return;
+    ui.rest = { end: Date.now() + D.rest * 1000, total: D.rest * 1000 };
+  }
+
+  const actions = {
+    tab(b) { ui.tab = b.dataset.tab; if (ui.tab === 'train' && ui.summary && b.closest('#tabs')) ui.summary = null; ui.picker = null; render(); window.scrollTo(0, 0); },
+    'toggle-group'(b) {
+      const id = b.dataset.id;
+      const i = ui.groups.indexOf(id);
+      if (i >= 0) ui.groups.splice(i, 1); else ui.groups.push(id);
+      render();
+    },
+    'toggle-gear'(b) {
+      const k = b.dataset.k;
+      D.gear = { ...gear(), [k]: !gear()[k] };
+      save(); render();
+    },
+    build() { ui.plan = buildPlan(ui.groups); ui.step = 'plan'; render(); window.scrollTo(0, 0); },
+    'back-groups'() { ui.step = 'groups'; render(); },
+    'plan-swap'(b) {
+      const i = +b.dataset.i;
+      const from = ui.plan[i];
+      const alt = nextAlt(from, ui.plan);
+      if (!alt) { ui.picker = { mode: 'plan-replace', i, g: ui.groups[0] }; render(); return; }
+      ui.plan[i] = alt;
+      planSwapped(i, from, alt);
+      render();
+    },
+    'plan-remove'(b) { ui.plan.splice(+b.dataset.i, 1); render(); },
+    'cov-add'(b) { const id = b.dataset.id; if (!ui.plan.includes(id)) ui.plan.push(id); toast(`${getEx(id).name} added`); render(); },
+    'open-picker'(b) {
+      const groups = b.dataset.mode.startsWith('wo') ? D.active.groups : ui.groups;
+      ui.picker = { mode: b.dataset.mode, i: +b.dataset.i, g: groups && groups.length === 1 ? groups[0] : '', q: '' };
+      render();
+      const q = document.getElementById('pk-q'); if (q && matchMedia('(pointer:fine)').matches) q.focus();
+    },
+    'close-picker'() { ui.picker = null; render(); },
+    explain(b) { ui.explain = b.dataset.id; render(); },
+    'close-explain'() { ui.explain = null; render(); },
+    'close-explain-bg'(b, e) { if (e.target === b) { ui.explain = null; render(); } },
+    'close-picker-bg'(b, e) { if (e.target === b) { ui.picker = null; render(); } },
+    'pk-group'(b) { ui.picker.g = b.dataset.g; render(); },
+    pick(b) { applyPick(b.dataset.id); },
+    start() {
+      D.active = { startedAt: Date.now(), groups: [...ui.groups], idx: 0, items: ui.plan.map(newItem) };
+      ui.rest = null;
+      save(); render(); window.scrollTo(0, 0);
+    },
+    goto(b) { D.active.idx = +b.dataset.i; ui.rest = null; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+    'toggle-set'(b) {
+      const it = currentItem();
+      const i = +b.dataset.s;
+      const s = it.sets[i];
+      if (s.done) { s.done = false; save(); render(); return; }
+      const row = b.closest('.set-row');
+      const wIn = row.querySelector('[data-k="w"]'), rIn = row.querySelector('[data-k="r"]');
+      if (s.w === '') s.w = wIn.placeholder || '';
+      if (s.r === '') s.r = rIn.placeholder || '';
+      if (s.r === '' || !(+s.r > 0)) { s.r = ''; rIn.focus(); rIn.classList.add('shake'); setTimeout(() => rIn.classList.remove('shake'), 400); return; }
+      if (s.w === '') s.w = '0';
+      s.done = true;
+      const finishedLift = itemDone(it);
+      if (!(finishedLift && D.active.items.every(itemDone))) startRest();
+      if (finishedLift) { ui.justFinishedLift = true; toast(`${getEx(it.exId).name} done`); }
+      save(); render();
+    },
+    'add-set'() {
+      const it = currentItem();
+      it.sets.push({ w: '', r: '', done: false });
+      save(); render();
+    },
+    'remove-set'() {
+      const it = currentItem();
+      const i = it.sets.map((s) => s.done).lastIndexOf(false);
+      it.sets.splice(i >= 0 ? i : it.sets.length - 1, 1);
+      save(); render();
+    },
+    'wo-swap'() {
+      const A = D.active;
+      const from = currentItem().exId;
+      const alt = nextAlt(from, A.items.map((x) => x.exId));
+      if (!alt) { toast('No similar lift left. Try Choose another.'); return; }
+      const old = A.items[A.idx];
+      const it = newItem(alt);
+      A.items[A.idx] = it;
+      ui.rest = null;
+      woSwapped(A.idx, old, it);
+      save(); render();
+    },
+    'wo-skip'() {
+      const A = D.active;
+      currentItem().skipped = true; // keeps any sets already done
+      const n = A.items.findIndex((x) => !itemDone(x));
+      if (n >= 0) A.idx = n;
+      ui.rest = null;
+      save(); render();
+    },
+    'rest-add'() { if (ui.rest) { ui.rest.end += 30000; ui.rest.total += 30000; } tickClock(); },
+    'rest-skip'() { ui.rest = null; const r = document.getElementById('rest'); if (r) r.remove(); },
+    finish() {
+      const A = D.active;
+      const pending = A.items.some((it) => !it.skipped && it.sets.some((s) => !s.done) && it.sets.some((s) => s.done));
+      const untouched = A.items.filter((it) => !it.sets.some((s) => s.done) && !it.skipped).length;
+      if (!A.items.every(itemDone)) {
+        const msg = pending || untouched ? 'Finish now? Sets you haven\'t checked off won\'t be saved.' : 'Finish workout?';
+        if (!confirm(msg)) return;
+      }
+      const entries = A.items.map((it) => ({ exId: it.exId, name: getEx(it.exId).name, sets: it.sets.filter((s) => s.done).map((s) => ({ w: +s.w || 0, r: +s.r || 0 })) })).filter((e) => e.sets.length);
+      if (!entries.length) {
+        if (confirm('No sets were checked off, so there is nothing to save. Discard this workout?')) { D.active = null; ui.rest = null; save(); ui.step = 'groups'; render(); }
+        return;
+      }
+      const date = new Date(A.startedAt).toISOString();
+      const prs = [];
+      entries.forEach((e) => {
+        const was = Store.bestE1rm(D, e.exId);
+        const now = Store.summarize(e.sets).e1rm;
+        if (was > 0 && now > was) prs.push({ name: e.name, was, now });
+      });
+      const session = { id: uid(), date, groups: A.groups, durationMin: Math.max(1, Math.round((Date.now() - A.startedAt) / 60000)), entries };
+      D.sessions.push(session);
+      D.active = null;
+      ui.rest = null;
+      ui.summary = { duration: session.durationMin, sets: entries.reduce((t, e) => t + e.sets.length, 0), volume: Store.sessionVolume(session), prs, entries };
+      ui.step = 'groups'; ui.groups = []; ui.plan = [];
+      save(); render(); window.scrollTo(0, 0);
+    },
+    discard() {
+      if (!confirm('Discard this workout? Nothing from it will be saved.')) return;
+      D.active = null; ui.rest = null; ui.step = 'plan'; save(); render();
+    },
+    'summary-done'() { ui.summary = null; render(); window.scrollTo(0, 0); },
+    metric(b) { ui.metric = b.dataset.m; render(); },
+    'hist-toggle'(b) { ui.open[b.dataset.id] = !ui.open[b.dataset.id]; render(); },
+    'hist-delete'(b) {
+      if (!confirm('Delete this workout from your history? This can\'t be undone.')) return;
+      D.sessions = D.sessions.filter((s) => s.id !== b.dataset.id); save(); render();
+    },
+    export() {
+      const blob = new Blob([JSON.stringify(D, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `liftlog-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    },
+    reset() {
+      if (!confirm('Erase ALL workouts, custom exercises and settings from this browser? This can\'t be undone.')) return;
+      localStorage.removeItem('liftlog.v1'); D = Store.load(); ui.summary = null; ui.step = 'groups'; render();
+    },
+    sample() { loadSample(); toast('Sample data loaded'); render(); },
+  };
+
+  // ------------------------------------------------------------ sample data
+  function loadSample() {
+    const rot = [
+      ['chest', [['bench-press', 135, 8], ['incline-db-press', 45, 10], ['cable-fly', 30, 12], ['push-up', 0, 15]]],
+      ['back', [['lat-pulldown', 110, 10], ['barbell-row', 115, 8], ['db-row', 50, 10], ['face-pull', 35, 12]]],
+      ['legs', [['back-squat', 165, 6], ['rdl', 135, 8], ['leg-press', 250, 10], ['calf-raise', 40, 15]]],
+      ['shoulders', [['ohp', 85, 6], ['lateral-raise', 15, 12], ['db-curl', 25, 10], ['tricep-pushdown', 45, 12]]],
+    ];
+    const days = [];
+    const today = new Date();
+    for (let d = 70; d >= 2; d--) {
+      const dt = new Date(today); dt.setDate(dt.getDate() - d);
+      if ([1, 3, 5].includes(dt.getDay()) || (dt.getDay() === 6 && d % 3 === 0)) days.push(dt);
+    }
+    days.forEach((dt, n) => {
+      const [g, lifts] = rot[n % rot.length];
+      const cycle = Math.floor(n / rot.length);
+      dt.setHours(17, 30, 0, 0);
+      D.sessions.push({
+        id: uid(), date: dt.toISOString(), groups: [g], durationMin: 50 + (n % 4) * 5,
+        entries: lifts.map(([id, w, r]) => {
+          const ex = getEx(id);
+          const step = w >= 100 ? 5 : w >= 40 ? 2.5 : w > 0 ? 1.25 : 0;
+          const base = w + Math.floor(cycle * 0.8) * step * (w >= 100 ? 1 : 1);
+          return { exId: id, name: ex.name, sets: [0, 1, 2].map((k) => ({ w: Math.round(base / 2.5) * 2.5 || 0, r: Math.max(1, r + (w ? 0 : cycle) - (k === 2 ? (n % 2) : 0) - (k && n % 3 === 0 ? 1 : 0)) })) };
+        }),
+      });
+    });
+    save();
+  }
+
+  // ------------------------------------------------------------- live clock
+  function tickClock() {
+    const el = document.querySelector('[data-elapsed]');
+    if (el && D.active) {
+      const m = Math.floor((Date.now() - D.active.startedAt) / 60000);
+      el.textContent = m < 60 ? `${m} min` : `${Math.floor(m / 60)}h ${m % 60}m`;
+    }
+    if (ui.rest) {
+      const left = Math.max(0, ui.rest.end - Date.now());
+      const t = document.getElementById('rest-t'), bar = document.getElementById('rest-bar'), box = document.getElementById('rest');
+      if (t && left > 0) t.textContent = fmtClock(left);
+      if (bar) bar.style.width = `${(left / ui.rest.total) * 100}%`;
+      if (left === 0) {
+        if (box) { box.classList.add('over'); t.textContent = 'Go!'; }
+        if (!ui.rest.buzzed) { ui.rest.buzzed = true; if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }
+        if (Date.now() - ui.rest.end > 8000) { ui.rest = null; if (box) box.remove(); }
+      }
+    }
+  }
+  const fmtClock = (ms) => { const s = Math.ceil(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  setInterval(tickClock, 250);
+
+  // ---------------------------------------------------------------- events
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]');
+    if (!b || b.disabled) return;
+    const fn = actions[b.dataset.act];
+    if (fn) fn(b, e);
+  });
+
+  app.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.dataset.k && D.active) {
+      const s = currentItem().sets[+t.dataset.set];
+      if (s && !s.done) { s[t.dataset.k] = t.value; save(); }
+    } else if (t.id === 'pk-q') {
+      ui.picker.q = t.value;
+      const list = document.getElementById('pk-list');
+      list.innerHTML = pickerList();
+      list.querySelectorAll('[data-fig]').forEach((el) => Figure.mount(el, getEx(el.dataset.fig), { static: true, u: 1 }));
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (ui.explain) { ui.explain = null; render(); } else if (ui.picker) { ui.picker = null; render(); }
+  });
+  app.addEventListener('keydown', (e) => {
+    // Enter in a reps box completes the set
+    if (e.key === 'Enter' && e.target.dataset && e.target.dataset.k) {
+      e.preventDefault();
+      const btn = e.target.closest('.set-row').querySelector('.check');
+      if (e.target.dataset.k === 'w') e.target.closest('.set-row').querySelector('[data-k="r"]').focus();
+      else btn.click();
+    }
+  });
+
+  app.addEventListener('change', (e) => {
+    const t = e.target;
+    if (t.id === 'prog-ex') { ui.progEx = t.value; render(); }
+    if (t.id === 'set-units') { D.units = t.value; save(); render(); }
+    if (t.id === 'set-rest') { D.rest = +t.value; save(); }
+    if (t.id === 'set-bw' || t.id === 'prof-bw') { D.profile = { ...(D.profile || {}), bw: +t.value || 0, unit: D.units }; save(); render(); }
+    if (t.id === 'set-exp' || t.id === 'prof-exp') { D.profile = { ...(D.profile || {}), exp: t.value }; save(); render(); }
+    if (t.id === 'import' && t.files[0]) {
+      t.files[0].text().then((txt) => {
+        try {
+          const data = JSON.parse(txt);
+          if (!Array.isArray(data.sessions)) throw new Error('bad file');
+          if (!confirm(`Replace your current data with this backup (${data.sessions.length} workouts)?`)) return;
+          D = Object.assign(Store.load(), data, { active: data.active || null });
+          save(); toast('Backup imported'); render();
+        } catch (err) { alert('That file doesn\'t look like a LiftLog backup.'); }
+      });
+    }
+  });
+
+  app.addEventListener('submit', (e) => {
+    if (e.target.id !== 'pk-custom') return;
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const name = String(f.get('name') || '').trim();
+    if (!name) return;
+    const ex = { id: `custom-${uid()}`, name, groups: [f.get('group')], equip: f.get('equip'), bw: f.get('equip') === 'Bodyweight', sets: 3, reps: '8–12', cues: [], custom: true };
+    D.custom.push(ex);
+    save();
+    applyPick(ex.id);
+  });
+
+  let rz;
+  window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (ui.tab === 'progress') drawCharts(); }, 150); });
+
+  render();
+})();
+
+</script>
+</body>
+</html>

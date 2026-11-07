@@ -1,0 +1,26 @@
+# LiftLog
+
+A simple workout tracker that runs in the browser. You don't need to install or build anything.
+
+## Run it
+- Double-click `index.html`, or
+- run `python -m http.server 5173` in this folder and open http://localhost:5173
+
+## How it works
+- **Train**: pick one or more muscle groups and you get about 6 suggested lifts. On any lift, **Swap** replaces it with a lift that works the same muscles, preferring different equipment (tap again for the next option). **Choose…** lets you pick any exercise, including ones you create yourself. During the workout you log weight and reps for each set. Each set row shows what you did last time, and the inputs are prefilled with those numbers. When you check off all the sets, the next lift unlocks, and a rest timer starts after each set.
+- **Equipment**: adjustable dumbbells and a bench are always assumed. On the Train screen you tick what else you have today (free weight room, cable machines, machines). The plan and Swap only use lifts you can do, and lifts that need other equipment are listed last in the picker. If a group runs short, the plan borrows lifts that work it as a secondary target.
+- **Starting weights**: a lift you haven't logged before suggests a first weight. It scales from your other lifts, or from bodyweight and experience (set in History › Settings), and the next set adjusts to the reps you got on set 1.
+- **Muscle map**: every lift shows a front/back heatmap of the muscles it works. The plan screen has a **Muscle coverage** card that checks each part of the chosen groups (e.g. upper/mid/lower chest) and suggests a lift for anything missed. The auto-plan and the exercise picker all favour lifts that fill gaps.
+- **Progress**: per-lift charts (estimated 1RM, heaviest set, volume) and weekly total volume.
+- **History**: past workouts, settings (lb/kg, rest timer), and backup export/import.
+
+Data is stored in your browser's localStorage, so use **Export backup** to move it to another device.
+
+## Files
+Everything is in `index.html` (styles and scripts are inlined) so it works when opened directly, copied, or emailed as one file. The script blocks are labelled:
+- `exercises.js`: exercise library (names, cues, sets/reps, diagram poses)
+- `muscles.js`: muscle areas, what each lift works, and the body heatmap
+- `figure.js`: animated stick-figure diagrams
+- `store.js`: saving data and history queries
+- `chart.js`: SVG charts
+- `app.js`: screens and workout logic
