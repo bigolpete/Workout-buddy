@@ -413,6 +413,9 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 .s-ico { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .78rem; font-weight: 800;
   background: var(--accent-soft); color: var(--accent); }
 .safe-list li.ok .s-ico { background: var(--good-soft); color: var(--good); }
+.cv-sets { font-size: .74rem; font-weight: 600; text-transform: none; letter-spacing: 0; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
+.cv-sets.good { background: var(--good-soft); color: var(--good); }
+.cv-sets.light, .cv-sets.lots { background: var(--accent-soft); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -2034,26 +2037,55 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
   const areasFor = (groups) => [].concat(...groups.map((g) => Muscles.GROUP_AREAS[g] || []));
   const exIndex = (id) => { const i = allEx().findIndex((e) => e.id === id); return i < 0 ? 1e9 : i; };
 
-  // Pick ~6 lifts, taking turns across groups, each time choosing the lift that
-  // covers the most of that group's areas not already covered.
+  // How many lifts each group gets. Every lift is 3 sets, so 3 lifts is ~9 hard sets
+  // and 4 lifts is ~12: the useful range for one muscle in one workout (past ~12-15
+  // you're mostly adding fatigue, not growth). One group: 4 lifts. Two groups: 4 for a
+  // big group (chest, back, legs), 3 for a small one. Three or more: 3 each, so adding
+  // a group adds lifts instead of thinning out the others.
+  // These are starting points, not limits: a group gets one more if it still has a
+  // part that nothing works, and you can always add more yourself.
+  const BIG_GROUPS = new Set(['chest', 'back', 'legs']);
+  function liftTarget(g, n) {
+    if (n >= 3) return 3;
+    if (n === 2) return BIG_GROUPS.has(g) ? 4 : 3;
+    return 4;
+  }
+
+  // Take turns across groups, each time choosing the lift that covers the most of
+  // that group's areas not already covered, until every group has its share.
   function buildPlan(groups) {
+    const ok = availEx().filter((e) => !e.custom);
     const pools = groups.map((g) => {
-      const ok = availEx().filter((e) => !e.custom);
       const main = ok.filter((e) => e.groups[0] === g);
       // short on equipment: borrow lifts that work this group as a secondary target
       return (main.length >= 4 ? main : main.concat(ok.filter((e) => e.groups[0] !== g && e.groups.includes(g)))).map((e) => e.id);
     });
+    const want = groups.map((g) => liftTarget(g, groups.length));
+    const got = groups.map(() => 0);
     const plan = [];
-    let i = 0, guard = 0;
-    while (plan.length < 6 && pools.some((p) => p.length) && guard++ < 200) {
-      const gi = i++ % pools.length, p = pools[gi];
-      if (!p.length) continue;
+    const pick = (gi) => {
+      const p = pools[gi].filter((id) => !plan.includes(id));
+      if (!p.length) return -1;
       const areas = Muscles.GROUP_AREAS[groups[gi]] || [];
       let best = p[0], bs = -1;
       p.forEach((id) => { const g = gain(plan, id, areas); if (g > bs + 1e-9) { bs = g; best = id; } });
-      p.splice(p.indexOf(best), 1);
-      if (!plan.includes(best)) plan.push(best);
+      return { id: best, gain: bs };
+    };
+    for (let round = 0; got.some((n, gi) => n < want[gi]) && round < 20; round++) {
+      groups.forEach((g, gi) => {
+        if (got[gi] >= want[gi]) return;
+        const b = pick(gi);
+        if (b === -1) { want[gi] = got[gi]; return; }
+        plan.push(b.id); got[gi]++;
+      });
     }
+    // one extra lift for a group that still has a part with no real work on it
+    groups.forEach((g, gi) => {
+      const cur = Muscles.total(plan.map(getEx));
+      if (!(Muscles.GROUP_AREAS[g] || []).some((a) => (cur[a] || 0) < .5)) return;
+      const b = pick(gi);
+      if (b !== -1 && b.gain >= .5) plan.push(b.id);
+    });
     return plan.sort((a, b) => exIndex(a) - exIndex(b));
   }
 
@@ -2143,6 +2175,16 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 
   const worksText = (ex, n = 3) => Muscles.list(Muscles.of(ex)).slice(0, n).map((a) => Muscles.AREAS[a]).join(' · ');
 
+  // Hard sets a group gets today: full credit when it's the lift's main group, half otherwise.
+  function groupSets(ids, g) {
+    return ids.reduce((n, id) => { const e = getEx(id), k = e.sets || 3; return n + (e.groups[0] === g ? k : (e.groups || []).includes(g) ? k / 2 : 0); }, 0);
+  }
+  function setsBadge(ids, g) {
+    const n = Math.round(groupSets(ids, g));
+    const [cls, txt] = n < 6 ? ['light', 'on the light side'] : n <= 15 ? ['good', 'a solid amount'] : ['lots', 'a lot for one day'];
+    return `<span class="cv-sets ${cls}" title="About 6–12 hard sets per muscle in one workout is the useful range. Sets from lifts where it's a helper muscle count half.">${n} sets · ${txt}</span>`;
+  }
+
   function coverageCard(ids, groups) {
     const cov = coverage(ids, groups);
     if (!cov.length) return '';
@@ -2162,7 +2204,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         <div class="cov-map">${Muscles.map(vals)}
           <div class="hm-key"><span><i style="background:var(--hm-3)"></i>Main</span><span><i style="background:var(--hm-2)"></i>Some</span><span><i style="background:var(--hm-1)"></i>Light</span></div></div>
         <div class="cov-list">${cov.map((c) => `
-          <h3>${esc(groupName(c.g))}</h3>
+          <h3>${esc(groupName(c.g))} ${setsBadge(ids, c.g)}</h3>
           <ul>${c.areas.map((x) => {
             const sug = x.state === 'hit' ? [] : suggestFor(x.a, ids, groups);
             return `<li class="cv-${x.state}"><span class="cv-ic" aria-hidden="true">${icon[x.state]}</span>
