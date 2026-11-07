@@ -126,13 +126,20 @@ h3 { font-size: 1rem; }
 .group {
   position: relative; text-align: left; border: 2px solid transparent; background: var(--surface);
   border-radius: var(--r); padding: 10px 14px 14px; box-shadow: var(--shadow);
-  display: grid; grid-template-rows: auto auto auto; transition: border-color .15s, transform .08s;
+  display: grid; grid-template-rows: auto auto auto auto; transition: border-color .15s, transform .08s;
 }
 .group:active { transform: scale(.98); }
 .group.on { border-color: var(--accent); background: var(--accent-soft); }
 .g-fig { width: 76px; height: 76px; margin: 0 0 4px -6px; display: block; }
 .g-name { font-weight: 700; font-size: 1.05rem; }
 .g-meta { font-size: .8rem; color: var(--muted); }
+.g-status { font-size: .8rem; font-weight: 700; color: var(--muted); margin-bottom: 1px; }
+.group.g-ready { border-color: rgba(76, 199, 134, .45); background: var(--good-soft); }
+.group.g-ready .g-status { color: var(--good); }
+.group.g-rest .g-fig { opacity: .55; }
+.group.on { border-color: var(--accent); background: var(--accent-soft); }
+.g-key { white-space: nowrap; color: var(--good); font-weight: 600; }
+.g-key i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--good); margin-right: 5px; }
 .g-check {
   position: absolute; top: 10px; right: 10px; width: 26px; height: 26px; border-radius: 50%;
   background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: .85rem; font-weight: 800;
@@ -1770,9 +1777,32 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     t._h = setTimeout(() => t.classList.remove('show'), undo ? 6000 : 2200);
   }
 
-  function lastTrained(gid) {
-    const s = [...D.sessions].sort(Store.byDate).reverse().find((x) => (x.groups || []).includes(gid));
-    return s ? `Last: ${agoText(s.date)}` : 'Not trained yet';
+  // ------------------------------------------------------------- recovery
+  // Rest days a muscle group needs before it's ready again. Smaller groups
+  // recover in about a day; chest, back and legs take a bit longer.
+  // Each group is judged only on its own last workout, so biceps can be ready
+  // whether or not you've had a leg day since.
+  const REST_DAYS = { chest: 2, back: 2, legs: 2, shoulders: 1, biceps: 1, triceps: 1, core: 1 };
+  // A session trained a group if it was one of the day's groups, or the lifts
+  // gave it at least 3 hard sets (sets where it's only a helper count half,
+  // so 6 sets of bench press counts as a triceps day too).
+  function trainedIn(sess, gid) {
+    if ((sess.groups || []).includes(gid)) return true;
+    const credit = (sess.entries || []).reduce((n, e) => {
+      const ex = getEx(e.exId);
+      if (!ex || !ex.groups) return n;
+      return n + (ex.groups[0] === gid ? e.sets.length : ex.groups.includes(gid) ? e.sets.length / 2 : 0);
+    }, 0);
+    return credit >= 3;
+  }
+  function recovery(gid) {
+    const s = [...D.sessions].sort(Store.byDate).reverse().find((x) => trainedIn(x, gid));
+    if (!s) return { state: 'ready', label: 'Ready', meta: 'Not trained yet' };
+    const days = daysAgo(s.date), need = REST_DAYS[gid] || 1;
+    const meta = `Last: ${agoText(s.date)}`;
+    if (days > need) return { state: 'ready', label: days >= 7 ? 'Due' : 'Ready', meta };
+    const left = need + 1 - days;
+    return { state: 'rest', label: left === 1 ? 'Ready tomorrow' : `Ready in ${left} days`, meta };
   }
 
   function lastLine(exId) {
@@ -2274,15 +2304,17 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     const thumbs = { chest: 'bench-press', back: 'lat-pulldown', shoulders: 'lateral-raise', biceps: 'db-curl', triceps: 'tricep-pushdown', legs: 'back-squat', core: 'crunch' };
     return `
       <header class="top"><p class="eyebrow">${esc(today)}</p><h1>What are we training?</h1>
-      <p class="sub">Pick one muscle group, or a few for a combined day.</p></header>
+      <p class="sub">Pick one muscle group, or a few for a combined day. <span class="g-key"><i></i>Green</span> groups have had time to recover.</p></header>
       ${backupBanner()}
       <div class="group-grid">
         ${GROUPS.map((g) => {
           const n = ui.groups.indexOf(g.id);
-          return `<button class="group${n >= 0 ? ' on' : ''}" data-act="toggle-group" data-id="${g.id}" aria-pressed="${n >= 0}">
+          const rc = recovery(g.id);
+          return `<button class="group g-${rc.state}${n >= 0 ? ' on' : ''}" data-act="toggle-group" data-id="${g.id}" aria-pressed="${n >= 0}">
             <span class="g-fig" data-fig="${thumbs[g.id]}" data-static="1"></span>
             <span class="g-name">${g.name}</span>
-            <span class="g-meta">${esc(lastTrained(g.id))}</span>
+            <span class="g-status">${rc.state === 'ready' ? '●' : '◔'} ${esc(rc.label)}</span>
+            <span class="g-meta">${esc(rc.meta)}</span>
             ${n >= 0 ? `<span class="g-check" aria-hidden="true">✓</span>` : ''}
           </button>`;
         }).join('')}
