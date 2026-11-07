@@ -416,6 +416,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 .cv-sets { font-size: .74rem; font-weight: 600; text-transform: none; letter-spacing: 0; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
 .cv-sets.good { background: var(--good-soft); color: var(--good); }
 .cv-sets.light, .cv-sets.lots { background: var(--accent-soft); color: var(--accent); }
+.time-est { margin: 12px 2px 0; font-size: .88rem; color: var(--ink-2); }
+.time-est b { color: var(--ink); }
 </style>
 </head>
 <body>
@@ -1962,6 +1964,25 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
   };
   const isCompound = (ex) => FULL_BAR.has(ex.id) || Object.values(Muscles.of(ex)).filter((v) => v >= 1).length >= 2 || Object.values(Muscles.of(ex)).filter((v) => v >= .5).length >= 4;
 
+  // ------------------------------------------------------------ time estimate
+  // Rough length of a workout: each set (about 4 s per rep, or the hold time, plus
+  // ~15 s to set up), your rest timer between sets, ~1 min moving to the next lift,
+  // and ~2.5 min of warm-up sets before a loaded compound lift.
+  function liftSecs(ex, setsLeft = ex.sets || 3, fresh = true) {
+    if (setsLeft <= 0) return 0;
+    const rest = D.rest || 90;
+    const work = (ex.timed ? repMid(ex) : repMid(ex) * 4) + 15;
+    const warm = fresh && !ex.bw && !ex.timed && isCompound(ex) ? 150 : 0;
+    return setsLeft * work + (setsLeft - 1) * rest + 60 + warm;
+  }
+  const planSecs = (ids) => ids.reduce((t, id) => t + liftSecs(getEx(id)), 0);
+  const woLeftSecs = (A) => A.items.reduce((t, it) => (it.skipped ? t
+    : t + liftSecs(getEx(it.exId), it.sets.filter((x) => !x.done).length, !it.sets.some((x) => x.done))), 0);
+  function durText(sec) {
+    const m = Math.max(5, Math.round(sec / 300) * 5);
+    return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`;
+  }
+
   function explainView() {
     const ex = getEx(ui.explain);
     const g = GUIDE[ex.id];
@@ -2299,8 +2320,9 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         }).join('') || '<p class="empty">No lifts yet. Add one below.</p>'}
       </div>
       <button class="btn ghost block add" data-act="open-picker" data-mode="plan-add">+ Add another exercise</button>
+      ${ui.plan.length ? `<p class="time-est"><span aria-hidden="true">⏱</span> About <b>${durText(planSecs(ui.plan))}</b>, counting ${D.rest ? `${D.rest < 60 ? `${D.rest} s` : `${(D.rest / 60).toString().replace('.5', ':30')} min`} rest between sets` : 'about 90 s rest between sets'} and warm-up sets.</p>` : ''}
       ${coverageCard(ui.plan, ui.groups)}
-      <div class="cta-bar"><button class="btn primary block" data-act="start" ${ui.plan.length ? '' : 'disabled'}>Start workout · ${ui.plan.length} lifts</button></div>`;
+      <div class="cta-bar"><button class="btn primary block" data-act="start" ${ui.plan.length ? '' : 'disabled'}>Start workout · ${ui.plan.length} lifts${ui.plan.length ? ` · ~${durText(planSecs(ui.plan))}` : ''}</button></div>`;
   }
 
   function workoutView() {
@@ -2347,7 +2369,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 
     return `
       <header class="top row wo-head">
-        <div><p class="eyebrow">${esc((A.groups || []).map(groupName).join(' + ') || 'Workout')} · <span data-elapsed></span></p>
+        <div><p class="eyebrow">${esc((A.groups || []).map(groupName).join(' + ') || 'Workout')} · <span data-elapsed></span>${allDone ? '' : ` · ~${durText(woLeftSecs(A))} left`}</p>
         <h1>Lift ${A.idx + 1} of ${A.items.length}</h1></div>
         <button class="btn small" data-act="finish">Finish</button>
       </header>
