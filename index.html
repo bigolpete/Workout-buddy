@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0f1012">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="LiftLog">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <title>LiftLog</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e8541e'/%3E%3Crect x='6' y='14' width='20' height='4' rx='1' fill='white'/%3E%3Crect x='5' y='9' width='5' height='14' rx='1.5' fill='white'/%3E%3Crect x='22' y='9' width='5' height='14' rx='1.5' fill='white'/%3E%3C/svg%3E">
   <style>
@@ -394,6 +399,20 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 .xp-sec li + li { margin-top: 5px; }
 .xp-sec p { margin: 0; color: var(--ink-2); font-size: .92rem; line-height: 1.45; }
 .xp-stop { margin-top: 16px; }
+.backup-banner { display: grid; gap: 10px; border: 1px solid var(--accent); background: var(--accent-soft); margin-top: 14px; }
+.backup-banner b { display: block; }
+.backup-banner .muted { font-size: .86rem; }
+.backup-banner .btn-row { margin: 0; }
+.safety h2 { margin-bottom: 2px; }
+.safe-list { list-style: none; margin: 10px 0 12px; padding: 0; display: grid; gap: 10px; }
+.safe-list li { display: flex; gap: 10px; align-items: flex-start; }
+.safe-list li > span:last-child { display: grid; gap: 3px; min-width: 0; }
+.safe-list .muted { font-size: .84rem; line-height: 1.4; }
+.safe-list .muted b { color: var(--ink-2); }
+.safe-list .btn, .safe-list .link { justify-self: start; margin-top: 4px; }
+.s-ico { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .78rem; font-weight: 800;
+  background: var(--accent-soft); color: var(--accent); }
+.safe-list li.ok .s-ico { background: var(--good-soft); color: var(--good); }
 </style>
 </head>
 <body>
@@ -1639,6 +1658,68 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     justFinishedLift: false,
   };
 
+  // ------------------------------------------------------------ data safety
+  // Workouts live in this browser's storage. These helpers make that safer on a phone:
+  // install to the Home Screen, ask the browser not to clear it, and nudge backups.
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const safe = { persisted: null, installEvt: null };
+  if (navigator.storage && navigator.storage.persisted) navigator.storage.persisted().then((v) => { safe.persisted = v; if (ui.tab === 'history') render(); });
+  function askPersist() {
+    if (!navigator.storage || !navigator.storage.persist || safe.persisted) return;
+    navigator.storage.persist().then((v) => { safe.persisted = v; });
+  }
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); safe.installEvt = e; if (ui.tab === 'history') render(); });
+  window.addEventListener('appinstalled', () => { safe.installEvt = null; askPersist(); toast('LiftLog installed'); });
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+
+  const BACKUP_DAYS = 14;
+  function backupDue() {
+    if (!D.sessions.length) return false;
+    if (D.backupSnooze && Date.now() < D.backupSnooze) return false;
+    if (!D.lastBackup) return D.sessions.length >= 2;
+    const newer = D.sessions.some((x) => new Date(x.date) > new Date(D.lastBackup));
+    return newer && (Date.now() - new Date(D.lastBackup)) / 864e5 >= BACKUP_DAYS;
+  }
+  const backupAgo = () => (D.lastBackup ? agoText(D.lastBackup) : 'never');
+
+  function backupBanner() {
+    if (!backupDue()) return '';
+    return `<section class="card backup-banner">
+      <div><b>Back up your workouts</b><span class="muted">${D.sessions.length} workout${D.sessions.length === 1 ? '' : 's'} saved on this phone only. Last backup: ${esc(backupAgo())}.</span></div>
+      <div class="btn-row"><button class="btn primary small" data-act="export">Back up now</button><button class="btn ghost small" data-act="backup-later">Later</button></div>
+    </section>`;
+  }
+
+  function safetyCard() {
+    const inst = isStandalone();
+    const installRow = inst
+      ? `<li class="ok"><span class="s-ico">✓</span><span><b>Installed on this device</b><span class="muted">Opens like an app and works with no signal.</span></span></li>`
+      : `<li><span class="s-ico">!</span><span><b>Install the app</b><span class="muted">${isIOS
+          ? 'In Safari, tap <b>Share</b> (the square with an arrow), then <b>Add to Home Screen</b>. Installed apps aren\'t cleared after 7 days away like Safari websites are. <br><em>The Home Screen app has its own storage, separate from Safari: if you already logged workouts here, tap Back up now first, then Import backup inside the installed app.</em>'
+          : safe.installEvt ? 'Adds LiftLog to your home screen, works with no signal and keeps your data safer.'
+          : 'In your browser menu (⋮), choose <b>Install app</b> or <b>Add to Home screen</b>.'}</span>
+          ${safe.installEvt ? '<button class="btn primary small" data-act="install">Install</button>' : ''}</span></li>`;
+    const persistRow = safe.persisted === null ? ''
+      : safe.persisted ? `<li class="ok"><span class="s-ico">✓</span><span><b>Protected storage</b><span class="muted">The browser won't clear your data to free up space.</span></span></li>`
+      : `<li><span class="s-ico">!</span><span><b>Storage not protected yet</b><span class="muted">The browser could clear it if the phone runs very low on space. ${isIOS ? 'Installing to the Home Screen helps.' : 'Installing usually turns this on.'}</span>
+          <button class="link" data-act="persist">Ask the browser to keep it</button></span></li>`;
+    const old = D.lastBackup && (Date.now() - new Date(D.lastBackup)) / 864e5 >= BACKUP_DAYS;
+    const backupRow = `<li class="${D.lastBackup && !old ? 'ok' : ''}"><span class="s-ico">${D.lastBackup && !old ? '✓' : '!'}</span><span><b>Last backup: ${esc(backupAgo())}</b>
+        <span class="muted">Saves a file you can keep in ${isIOS ? 'iCloud Drive / Files' : 'Google Drive or Files'}, or email to yourself. Use <b>Import backup</b> on a new phone to restore.</span></span></li>`;
+    return `<section class="card safety">
+      <h2>Keep your data safe</h2>
+      <p class="note">Your workouts are stored on this device only.</p>
+      <ul class="safe-list">${installRow}${persistRow}${backupRow}</ul>
+      <div class="btn-row">
+        <button class="btn primary small" data-act="export">Back up now</button>
+        <label class="btn ghost small">Import backup<input type="file" id="import" accept=".json,application/json" hidden></label>
+      </div>
+    </section>`;
+  }
+
   // ---------------------------------------------------------------- helpers
   const allEx = () => EXERCISES.concat(D.custom);
   const getEx = (id) => allEx().find((e) => e.id === id) || { id, name: id, groups: [], equip: '', sets: 3, reps: '8–12', cues: [] };
@@ -2131,6 +2212,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     return `
       <header class="top"><p class="eyebrow">${esc(today)}</p><h1>What are we training?</h1>
       <p class="sub">Pick one muscle group, or a few for a combined day.</p></header>
+      ${backupBanner()}
       <div class="group-grid">
         ${GROUPS.map((g) => {
           const n = ui.groups.indexOf(g.id);
@@ -2283,6 +2365,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         <div class="tile"><span>Volume</span><b>${Charts.num(s.volume)} ${unit()}</b></div>
       </div>
       ${s.prs.length ? `<section class="card pr"><h2>New personal bests</h2><ul>${s.prs.map((p) => `<li><b>${esc(p.name)}</b><span>Est. 1RM ${fmtNum(Math.round(p.now))} ${unit()} <em>(was ${fmtNum(Math.round(p.was))})</em></span></li>`).join('')}</ul></section>` : ''}
+      ${backupBanner()}
       <section class="card"><h2>What you did</h2><ul class="hist-sets">${s.entries.map((e) => `<li><b>${esc(e.name)}</b><span>${e.sets.map((x) => esc(setStr(x, getEx(e.exId)))).join(', ')}</span></li>`).join('')}</ul></section>
       <div class="cta-bar"><button class="btn primary block" data-act="summary-done">Done</button>
       <button class="btn ghost block" data-act="tab" data-tab="progress">See progress</button></div>`;
@@ -2400,6 +2483,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         </li>`;
       }).join('')}</ul>` : `<section class="card empty-state"><h2>Nothing logged yet</h2><p>Your finished workouts will be listed here.</p></section>`}
 
+      ${safetyCard()}
       <section class="card settings">
         <h2>Settings</h2>
         <label class="field row"><span>Weight units</span>
@@ -2411,10 +2495,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         <label class="field row"><span>Lifting experience</span>
           <select id="set-exp">${Object.keys(EXP).map((k) => `<option value="${k}" ${((D.profile || {}).exp || 'new') === k ? 'selected' : ''}>${EXP[k].name}</option>`).join('')}</select></label>
         <p class="note">Bodyweight and experience are only used to suggest a starting weight for lifts you haven't logged yet.</p>
-        <p class="note">Your data is saved in this browser only. Export a backup to move it to another device.</p>
         <div class="btn-row">
-          <button class="btn ghost small" data-act="export">Export backup</button>
-          <label class="btn ghost small">Import backup<input type="file" id="import" accept="application/json" hidden></label>
           ${D.sessions.length ? '' : '<button class="btn ghost small" data-act="sample">Load sample data</button>'}
           <button class="btn ghost small danger" data-act="reset">Erase all data</button>
         </div>
@@ -2604,6 +2685,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       });
       const session = { id: uid(), date, groups: A.groups, durationMin: Math.max(1, Math.round((Date.now() - A.startedAt) / 60000)), entries };
       D.sessions.push(session);
+      askPersist();
       D.active = null;
       ui.rest = null;
       ui.summary = { duration: session.durationMin, sets: entries.reduce((t, e) => t + e.sets.length, 0), volume: Store.sessionVolume(session), prs, entries };
@@ -2622,12 +2704,31 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       D.sessions = D.sessions.filter((s) => s.id !== b.dataset.id); save(); render();
     },
     export() {
-      const blob = new Blob([JSON.stringify(D, null, 2)], { type: 'application/json' });
+      const name = `liftlog-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      const blob = new Blob([JSON.stringify({ ...D, active: null }, null, 2)], { type: 'application/json' });
+      const done = () => { D.lastBackup = new Date().toISOString(); D.backupSnooze = 0; save(); toast('Backup saved'); render(); };
+      const file = typeof File === 'function' ? new File([blob], name, { type: 'application/json' }) : null;
+      // phones: open the share sheet (Save to Files, Drive, email...). Computers: download.
+      if (file && navigator.canShare && navigator.canShare({ files: [file] }) && matchMedia('(pointer: coarse)').matches) {
+        navigator.share({ files: [file], title: 'LiftLog backup' }).then(done).catch((err) => { if (err && err.name !== 'AbortError') toast('Couldn\'t open the share sheet'); });
+        return;
+      }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `liftlog-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = name;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      done();
+    },
+    'backup-later'() { D.backupSnooze = Date.now() + 3 * 864e5; save(); render(); },
+    install() {
+      if (!safe.installEvt) return;
+      safe.installEvt.prompt();
+      safe.installEvt.userChoice.finally(() => { safe.installEvt = null; render(); });
+    },
+    persist() {
+      if (!navigator.storage || !navigator.storage.persist) { toast('This browser doesn\'t support that'); return; }
+      navigator.storage.persist().then((v) => { safe.persisted = v; toast(v ? 'Storage protected' : 'The browser said no. Installing the app usually helps.'); render(); });
     },
     reset() {
       if (!confirm('Erase ALL workouts, custom exercises and settings from this browser? This can\'t be undone.')) return;
@@ -2759,6 +2860,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
   let rz;
   window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (ui.tab === 'progress') drawCharts(); }, 150); });
 
+  if (isStandalone() && D.sessions.length) askPersist();
   render();
 })();
 

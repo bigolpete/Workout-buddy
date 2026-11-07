@@ -6,6 +6,15 @@ A simple workout tracker that runs in the browser. You don't need to install or 
 - Double-click `index.html`, or
 - run `python -m http.server 5173` in this folder and open http://localhost:5173
 
+## On your phone
+LiftLog is an installable web app. Host it over HTTPS (GitHub Pages works), open it on the phone, and add it to the home screen:
+- **iPhone (Safari):** Share → Add to Home Screen. The installed app has its own storage, separate from Safari, so install before logging (or back up in Safari and import in the app).
+- **Android (Chrome):** History → Install, or ⋮ → Install app.
+
+Installed, it opens full screen and works offline (`sw.js` caches the page). It's also protected from Safari's 7-day clearing and can ask Chrome for persistent storage. **History → Keep your data safe** shows the status and has **Back up now**, which opens the share sheet so you can save a backup file to iCloud Drive, Google Drive or email. A reminder appears when you haven't backed up for 2 weeks.
+
+Files: `manifest.webmanifest` (app name, colors, icons), `sw.js` (offline cache, bump `VERSION` when you add files), `icons/` (made by `python tools/make_icons.py`).
+
 ## How it works
 - **Train**: pick one or more muscle groups and you get about 6 suggested lifts. On any lift, **Swap** replaces it with a lift that works the same muscles, preferring different equipment (tap again for the next option). **Choose…** lets you pick any exercise, including ones you create yourself. During the workout you log weight and reps for each set. Each set row shows what you did last time, and the inputs are prefilled with those numbers. When you check off all the sets, the next lift unlocks, and a rest timer starts after each set.
 - **Equipment**: adjustable dumbbells and a bench are always assumed. On the Train screen you tick what else you have today (free weight room, cable machines, machines). The plan and Swap only use lifts you can do, and lifts that need other equipment are listed last in the picker. If a group runs short, the plan borrows lifts that work it as a secondary target.
