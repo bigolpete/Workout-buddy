@@ -231,6 +231,36 @@ h3 { font-size: 1rem; }
 .hold.on .hold-txt b { color: var(--accent); }
 .hold-txt .muted { font-size: .8rem; }
 .hold-btns { display: grid; gap: 4px; justify-items: center; }
+.gauntlet-card { display: block; border: 1px solid var(--accent); }
+.gc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.g-note { font-size: .82rem; color: var(--ink-2); margin: 4px 0 0; }
+.g-moves { list-style: none; margin: 10px 0; padding: 0; display: grid; gap: 8px; }
+.g-moves li { display: flex; gap: 10px; align-items: center; }
+.g-moves li > span:last-child { display: grid; gap: 1px; min-width: 0; }
+.g-moves .muted { font-size: .76rem; }
+.g-moves.small li { display: list-item; }
+.thumb.g-thumb { width: 54px; height: 54px; flex: none; padding: 2px; border-radius: 10px; }
+.thumb.g-thumb .fig-tag { display: none; }
+.g-rounds { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; }
+.g-add .muted { font-weight: 500; }
+.gauntlet-run h2 { margin-bottom: 4px; }
+.gauntlet-run.live { border: 2px solid var(--line); }
+.gauntlet-run.live.work { border-color: var(--accent); }
+.gauntlet-run.live.rest { border-color: var(--good); }
+.g-label { margin: 0; font-size: .78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.g-move { font-size: 1.5rem; margin: 2px 0 8px; }
+.g-live { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.g-live .g-fig { width: 100%; max-width: 220px; height: 180px; aspect-ratio: auto; }
+.g-clock { display: grid; justify-items: center; min-width: 110px; }
+.g-clock b { font-size: 4.2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.gauntlet-run.work .g-clock b { color: var(--accent); }
+.gauntlet-run.rest .g-clock b { color: var(--good); }
+.g-clock span { font-size: .8rem; color: var(--muted); }
+.g-next { margin: 8px 0 0; color: var(--ink-2); font-size: .9rem; }
+.g-bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin: 12px 0; }
+.g-bar i { display: block; height: 100%; background: var(--accent); transition: width .25s linear; }
+.g-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.gauntlet-run.done { border: 1px solid var(--good); }
 
 .wo-cta { margin: 4px 0 14px; }
 .upnext ul { list-style: none; margin: 8px 0; padding: 0; }
@@ -953,6 +983,60 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       cues: ['Stand with the balls of your feet on a step, holding something for balance.', 'Rise as high as you can onto your toes.', 'Lower your heels below the step for a full stretch.'],
       anim: { ...base('calf-raise'), eq: [] },
     },
+
+    // ---- more core moves (also used by the ab gauntlet) ---------------------
+    {
+      id: 'side-plank', name: 'Side Plank', groups: ['core'], equip: 'Bodyweight', bw: true, timed: true, sets: 3, reps: '20–45 sec',
+      cues: ['Lie on your side, elbow under your shoulder, feet stacked.', 'Lift your hips so your body makes a straight line from head to feet.', 'Hold without letting your hips drop. Switch sides each set.'],
+      anim: {
+        a: { hx: 100, hy: 160, t: 72, hand: [150, 181], ab: 'down', hand2: false, ua2: 180, fa2: 180, foot: [40, 178], foot2: [44, 174], wE: 16, wH: 12, wK: 6, wF: 6 },
+        b: { hx: 100, hy: 154, t: 70, hand: [150, 181], ab: 'down', hand2: false, ua2: 180, fa2: 180, foot: [40, 178], foot2: [44, 174], wE: 16, wH: 12, wK: 6, wF: 6 },
+        period: 4000,
+      },
+    },
+    {
+      id: 'hollow-hold', name: 'Hollow Hold', groups: ['core'], equip: 'Bodyweight', bw: true, timed: true, sets: 3, reps: '20–40 sec',
+      cues: ['Lie on your back and press your lower back into the floor.', 'Lift your shoulders and straight legs a few inches off the floor, arms reaching overhead.', 'Hold the banana shape. Bend your knees or bring your arms in to make it easier.'],
+      anim: {
+        a: { hx: 100, hy: 174, t: -75, ua: -120, fa: -118, th: 104, sh: 104, wE: 16, wH: 14, wK: 6, wF: 5 },
+        b: { hx: 100, hy: 174, t: -78, ua: -116, fa: -114, th: 108, sh: 108, wE: 16, wH: 14, wK: 6, wF: 5 },
+        period: 3000,
+      },
+    },
+    {
+      id: 'russian-twist', name: 'Russian Twist', groups: ['core'], equip: 'Bodyweight', bw: true, sets: 3, reps: '10/side',
+      cues: ['Sit with knees bent, lean back to about 45° and lift your feet if you can.', 'Hold your hands together and turn your shoulders to tap the floor beside one hip.', 'Turn to the other side. Move from your ribs, not just your arms. Hold a dumbbell to make it harder.'],
+      anim: {
+        a: { hx: 92, hy: 172, t: -38, hand: [98, 162], ab: 'down', foot: [134, 160], lb: 'up', wE: 24, wH: 22, wE2: 4, wH2: -14, wK: 10, wF: 8 },
+        b: { hx: 92, hy: 172, t: -38, hand: [102, 140], ab: 'down', foot: [134, 160], lb: 'up', wE: 4, wH: -14, wE2: 24, wH2: 22, wK: 10, wF: 8 },
+        period: 1800,
+      },
+    },
+    {
+      id: 'bicycle-crunch', name: 'Bicycle Crunch', groups: ['core'], equip: 'Bodyweight', bw: true, sets: 3, reps: '10/side',
+      cues: ['Lie on your back, hands lightly behind your head, shoulders off the floor.', 'Bring one knee in as you turn the opposite elbow toward it, other leg straight.', 'Switch sides in a slow pedalling motion. Don\'t pull on your neck.'],
+      anim: {
+        a: { hx: 100, hy: 174, t: -64, handT: [-6, 12], ab: 'up', foot: [122, 150], lb: 'up', foot2: [160, 164], lb2: 'up', wE: 24, wH: 6, wK: 6, wF: 6 },
+        b: { hx: 100, hy: 174, t: -64, handT: [-6, 12], ab: 'up', foot: [160, 164], lb: 'up', foot2: [122, 150], lb2: 'up', wE: 24, wH: 6, wK: 6, wF: 6 },
+        period: 2000,
+      },
+    },
+    {
+      id: 'pallof-press', name: 'Pallof Press', groups: ['core'], equip: 'Cable', sets: 3, reps: '10/side',
+      cues: ['Stand side-on to a cable at chest height, handle held at your chest with both hands.', 'Press the handle straight out in front of you without letting it pull you round.', 'Pause, bring it back to your chest, and do the other side.'],
+      anim: {
+        a: { ...STAND, hand: [113, 90], ab: 'down', wE: 14, wH: 3, wF: 14, wK: 13 },
+        b: { ...STAND, hand: [146, 84], ab: 'down', wE: 6, wH: 3, wF: 14, wK: 13 },
+        eq: [{ type: 'cable', px: 98, py: 88, fx: 186 }, { type: 'grip', at: 'hand' }],
+      },
+    },
+
+    // The ab gauntlet: a timed circuit of core moves (see the gauntlet code in app.js).
+    // special: it never shows up in plans, Swap or the picker on its own.
+    {
+      id: 'ab-gauntlet', name: 'Ab Gauntlet', groups: ['core'], equip: 'Bodyweight', bw: true, timed: true, special: true, sets: 3, reps: 'circuit',
+      cues: ['A timed circuit: one move from each part of your core, back to back.', 'Work steadily for each interval. Slow down rather than lose form.', 'The timer runs it for you. Just follow the screen.'],
+    },
   );
 
   window.GROUPS = GROUPS;
@@ -1038,6 +1122,12 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     'lying-leg-raise': { 'abs-lower': 1, 'abs-upper': .25 },
     'cable-crunch': { 'abs-upper': 1, 'abs-lower': .5, obliques: .25 },
     'dead-bug': { 'abs-lower': 1, 'abs-upper': .5, obliques: .5 },
+    'side-plank': { obliques: 1, 'abs-upper': .5, 'abs-lower': .25, glutes: .25, 'delt-side': .25 },
+    'hollow-hold': { 'abs-upper': 1, 'abs-lower': 1, obliques: .25 },
+    'russian-twist': { obliques: 1, 'abs-upper': .5 },
+    'bicycle-crunch': { obliques: 1, 'abs-upper': 1, 'abs-lower': .5 },
+    'pallof-press': { obliques: 1, 'abs-upper': .5, 'abs-lower': .25 },
+    'ab-gauntlet': { 'abs-upper': 1, 'abs-lower': 1, obliques: 1 },
     'incline-bb-press': { 'chest-upper': 1, 'chest-mid': .5, 'delt-front': .5, 'tri-lat': .25 },
     'pec-deck': { 'chest-mid': 1, 'chest-lower': .25, 'chest-upper': .25, 'delt-front': .25 },
     'machine-row': { 'upper-back': 1, lats: .5, 'delt-rear': .5, biceps: .25 },
@@ -1385,7 +1475,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     (eq || []).forEach((e) => {
       if (e.type === 'cable' && under) {
         // turned 90°, the pulley is seen straight on (in front of / beside the body)
-        const P = !s.alt ? [e.px, e.py] : s.view === 'front' ? [100, e.py] : [96, e.py];
+        const P = !s.alt ? [e.px, e.py] : s.view === 'front' ? [e.fx ?? 100, e.py] : [96, e.py];
         const tgts = s.alt && s.view === 'front' && !e.at ? points(s) : points(s, e.at || 'hand').slice(0, 1);
         tgts.forEach((t) => { out += ln(P, t, 'f-cable', 1.5); });
         out += `<circle cx="${P[0]}" cy="${P[1]}" r="5" class="f-pulley"/>`;
@@ -1787,6 +1877,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     open: {},             // expanded history items
     rest: null,           // { end, total }
     hold: null,           // plank stopwatch: { wo, idx, set, start }
+    gPlan: null,          // ab gauntlet being planned: { moves, rounds, work, rest, roundRest, light }
+    gRun: null,           // running gauntlet: { wo, idx, t0, offset, pausedAt, segs, seg }
     summary: null,
     justFinishedLift: false,
   };
@@ -1854,8 +1946,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
   }
 
   // ---------------------------------------------------------------- helpers
-  const allEx = () => EXERCISES.concat(D.custom);
-  const getEx = (id) => allEx().find((e) => e.id === id) || { id, name: id, groups: [], equip: '', sets: 3, reps: '8–12', cues: [] };
+  const allEx = () => EXERCISES.filter((e) => !e.special).concat(D.custom);
+  const getEx = (id) => EXERCISES.find((e) => e.id === id) || D.custom.find((e) => e.id === id) || { id, name: id, groups: [], equip: '', sets: 3, reps: '8–12', cues: [] };
   const groupName = (id) => (GROUPS.find((g) => g.id === id) || {}).name || id;
   const unit = () => D.units;
   const fmtNum = (n) => (Math.round(n * 100) / 100).toString();
@@ -1947,7 +2039,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     'barbell-curl': .25, 'db-curl': .07, 'hammer-curl': .08, 'preacher-curl': .2, 'cable-curl': .2, 'incline-db-curl': .06, 'concentration-curl': .06,
     'tricep-pushdown': .2, 'skull-crusher': .19, 'db-skull-crusher': .06, 'overhead-extension': .12, 'cable-overhead-extension': .15, kickback: .05,
     'back-squat': .55, 'goblet-squat': .2, rdl: .5, 'db-rdl': .15, 'leg-press': .9, 'walking-lunge': .08, 'bulgarian-split-squat': .06,
-    'leg-extension': .3, 'leg-curl': .3, 'hip-thrust': .55, 'calf-raise': .15, 'cable-crunch': .35, 'db-pullover': .12, 'db-bent-row': .14,
+    'leg-extension': .3, 'leg-curl': .3, 'hip-thrust': .55, 'calf-raise': .15, 'cable-crunch': .35, 'db-pullover': .12, 'db-bent-row': .14, 'pallof-press': .1,
   };
   // Lifts done with a full Olympic bar start at the empty bar at the lightest.
   const FULL_BAR = new Set(['bench-press', 'incline-bb-press', 'close-grip-bench', 'barbell-row', 'deadlift', 'ohp', 'back-squat', 'rdl', 'hip-thrust']);
@@ -2110,25 +2202,217 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     'hanging-leg-raise': [['Swinging', 'Only lifting your legs without tilting your pelvis', 'Dropping fast'], 'Start with bent knees. Curl your pelvis up at the top. That curl is what trains the abs.'],
     'lying-leg-raise': [['Lower back arching off the floor', 'Dropping your legs fast', 'Using momentum'], 'Press your lower back into the floor the whole time. Bend your knees to make it easier.'],
     'cable-crunch': [['Pulling with your arms', 'Sitting back onto your heels instead of curling', 'Going too heavy'], 'Keep your hips still and curl your ribs toward your hips.'],
+    'side-plank': [['Hips dropping toward the floor', 'Rolling forward or back', 'Shoulder shrugged up to your ear'], 'Push the floor away with your elbow and lift your top hip toward the ceiling. Bend your knees to make it easier.'],
+    'hollow-hold': [['Lower back arching off the floor', 'Holding your breath', 'Neck straining forward'], 'Your lower back staying flat matters more than how low your legs go. Raise them higher if your back lifts.'],
+    'russian-twist': [['Just swinging your arms', 'Rounding your back', 'Going so fast it\'s momentum'], 'Turn your chest, not only your hands. Keep your feet down until you can control it.'],
+    'bicycle-crunch': [['Yanking on your neck', 'Racing through the reps', 'Letting your lower back arch as the leg goes out'], 'Slow and controlled: hold each twist for a moment and reach your shoulder, not just your elbow, across.'],
+    'pallof-press': [['Twisting toward the cable', 'Going too heavy', 'Letting your hips shift'], 'The work is resisting the turn. Stand tall, brace, and press straight out from the middle of your chest.'],
+    'ab-gauntlet': [['Rushing and losing form to hit a number', 'Holding your breath', 'Pushing through back pain'], 'Each interval is a pace, not a race. If a move falls apart, switch to its easier version for the rest of the interval.'],
     'dead-bug': [['Lower back lifting off the floor', 'Moving too fast', 'Holding your breath'], 'Slow is the point. Breathe out as you reach, and only go as far as your back stays flat.'],
     'mountain-climber': [['Hips bouncing up and down', 'Hands ahead of your shoulders', 'Sloppy speed'], 'Keep your shoulders over your hands and your hips level, like a moving plank.'],
   };
   const isCompound = (ex) => FULL_BAR.has(ex.id) || Object.values(Muscles.of(ex)).filter((v) => v >= 1).length >= 2 || Object.values(Muscles.of(ex)).filter((v) => v >= .5).length >= 4;
 
+  // ------------------------------------------------------------ ab gauntlet
+  // A timed core circuit you can add to any workout. One move from each part of
+  // the core (lower abs, front, side/rotation, a hold), back to back, for a few rounds.
+  // Moves rotate: each slot picks the move you've done least recently in a gauntlet.
+  // On a day your core is still recovering it's shorter and sticks to easier moves.
+  const G_ID = 'ab-gauntlet';
+  const makeGaunt0 = () => ({ moves: [0, 0, 0, 0], ...G_FORMAT[recovery('core').state !== 'ready' ? 'light' : 'full'] });
+  const G_SLOTS = [
+    { name: 'Lower abs', moves: [['dead-bug', 1], ['lying-leg-raise', 2], ['mountain-climber', 2], ['hanging-leg-raise', 3]] },
+    { name: 'Front', moves: [['crunch', 1], ['bicycle-crunch', 2], ['cable-crunch', 2]] },
+    { name: 'Sides', moves: [['side-plank', 1], ['russian-twist', 2], ['pallof-press', 2]] },
+    { name: 'Hold', moves: [['plank', 1], ['hollow-hold', 2]] },
+  ];
+  const G_FORMAT = {
+    full: { rounds: 3, work: 30, rest: 15, roundRest: 45 },
+    light: { rounds: 2, work: 25, rest: 20, roundRest: 45 },
+  };
+  function lastGauntletUse() {
+    const seen = {};
+    [...D.sessions].sort(Store.byDate).forEach((x, n) => (x.entries || []).forEach((e) => (e.moves || []).forEach((m) => { seen[m] = n + 1; })));
+    return seen;
+  }
+  function makeGauntlet(prev) {
+    const light = recovery('core').state !== 'ready';
+    const seen = lastGauntletUse();
+    const moves = G_SLOTS.map((slot, i) => {
+      let opts = slot.moves.filter(([id, lvl]) => canDo(getEx(id)) && (!light || lvl <= 2)).map(([id]) => id);
+      if (!opts.length) opts = slot.moves.map(([id]) => id).filter((id) => canDo(getEx(id)));
+      // reshuffle: avoid the move this slot had last time it was rolled
+      if (prev && opts.length > 1) opts = opts.filter((id) => id !== prev.moves[i]);
+      const least = Math.min(...opts.map((id) => seen[id] || 0));
+      const pool = opts.filter((id) => (seen[id] || 0) === least);
+      return pool[Math.floor(Math.random() * pool.length)];
+    });
+    return { moves, light, ...G_FORMAT[light ? 'light' : 'full'], ...(prev ? { rounds: prev.rounds } : {}) };
+  }
+  const gSecs = (g, rounds = g.rounds) => (rounds > 0 ? rounds * (g.moves.length * (g.work + g.rest) - g.rest) + (rounds - 1) * g.roundRest : 0);
+  // The timeline: a short get-ready, then work / rest intervals.
+  function gSegments(g) {
+    const segs = [{ kind: 'ready', dur: 8, move: g.moves[0], round: 0 }];
+    for (let r = 0; r < g.rounds; r++) {
+      g.moves.forEach((m, i) => {
+        segs.push({ kind: 'work', dur: g.work, move: m, round: r, i });
+        const last = i === g.moves.length - 1;
+        if (!last) segs.push({ kind: 'rest', dur: g.rest, move: g.moves[i + 1], round: r });
+        else if (r < g.rounds - 1) segs.push({ kind: 'round', dur: g.roundRest, move: g.moves[0], round: r + 1 });
+      });
+    }
+    let t = 0;
+    segs.forEach((x) => { x.at = t; t += x.dur; });
+    return segs;
+  }
+  // where the running gauntlet is now
+  function gNow() {
+    const R = ui.gRun;
+    if (!R) return null;
+    const el = ((R.pausedAt || Date.now()) - R.t0 - R.offset) / 1000;
+    const segs = R.segs;
+    let i = segs.findIndex((x) => el < x.at + x.dur);
+    if (i < 0) i = segs.length;
+    return { el, i, seg: segs[i], left: segs[i] ? segs[i].at + segs[i].dur - el : 0, total: segs[segs.length - 1].at + segs[segs.length - 1].dur };
+  }
+  // seconds of work done in each round so far
+  function gWorkByRound(it) {
+    const now = gNow();
+    const out = Array(it.g.rounds).fill(0);
+    if (!now) return out;
+    const cut = ui.gRun.cut || {}; // intervals you skipped part-way only count the time you did
+    ui.gRun.segs.forEach((x, n) => { if (x.kind === 'work') out[x.round] += Math.max(0, Math.min(x.dur, cut[n] ?? x.dur, now.el - x.at)); });
+    return out.map(Math.round);
+  }
+
+  // beeps and buzzes so you don't have to watch the screen
+  let audio = null;
+  function beep(freq = 880, ms = 160, vol = 0.18) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === 'suspended') audio.resume();
+      const o = audio.createOscillator(), v = audio.createGain();
+      o.frequency.value = freq;
+      v.gain.setValueAtTime(vol, audio.currentTime);
+      v.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + ms / 1000);
+      o.connect(v); v.connect(audio.destination);
+      o.start(); o.stop(audio.currentTime + ms / 1000);
+    } catch (err) { /* no sound available */ }
+  }
+
+  function gauntletPlanCard(i) {
+    const g = ui.gPlan || (ui.gPlan = makeGauntlet());
+    return `<article class="lift-card gauntlet-card">
+      <div class="gc-head"><div><h3>⚡ Ab Gauntlet</h3>
+        <p class="meta">${g.moves.length} moves · ${g.rounds} rounds · ${g.work}s on / ${g.rest}s off · ~${Math.round(gSecs(g) / 60)} min</p>
+        ${g.light ? '<p class="g-note">Core is still recovering, so this is a lighter version.</p>' : ''}</div>
+        <button class="chip ghost" data-act="plan-remove" data-i="${i}" aria-label="Remove the ab gauntlet" title="Remove">✕</button></div>
+      <ol class="g-moves">${g.moves.map((id, n) => `<li><span class="thumb g-thumb" data-fig="${esc(id)}"></span><span><span class="muted">${esc(G_SLOTS[n].name)}</span><b>${esc(getEx(id).name)}</b></span></li>`).join('')}</ol>
+      <div class="lc-actions">
+        <button class="chip" data-act="g-shuffle">⟳ Shuffle moves</button>
+        <span class="g-rounds"><button class="chip" data-act="g-rounds" data-d="-1" aria-label="Fewer rounds" ${g.rounds <= 1 ? 'disabled' : ''}>−</button><span>${g.rounds} rounds</span><button class="chip" data-act="g-rounds" data-d="1" aria-label="More rounds" ${g.rounds >= 5 ? 'disabled' : ''}>+</button></span>
+      </div>
+    </article>`;
+  }
+
+  function gauntletCard(it) {
+    const A = D.active;
+    const g = it.g;
+    const running = ui.gRun && ui.gRun.wo === A.startedAt && ui.gRun.idx === A.idx;
+    if (itemDone(it)) {
+      return `<section class="card gauntlet-run done"><h2>⚡ Ab Gauntlet done</h2>
+        <p class="sub">${it.sets.filter((x) => x.done).map((x, n) => `Round ${n + 1}: ${x.r}s of work`).join(' · ')}</p>
+        <ol class="g-moves small">${g.moves.map((id) => `<li><b>${esc(getEx(id).name)}</b></li>`).join('')}</ol></section>`;
+    }
+    if (!running) {
+      return `<section class="card gauntlet-run">
+        <h2>⚡ Ab Gauntlet</h2>
+        <p class="sub">${g.rounds} rounds of ${g.moves.length} moves: ${g.work} seconds each with ${g.rest} seconds to switch, ${g.roundRest} seconds between rounds. About ${Math.round(gSecs(g) / 60)} minutes. The timer beeps at each change, so you can put the phone down.</p>
+        <ol class="g-moves">${g.moves.map((id, n) => `<li><span class="thumb g-thumb" data-fig="${esc(id)}"></span><span><span class="muted">${esc(G_SLOTS[n].name)}</span><b>${esc(getEx(id).name)}</b><span class="muted">${esc((getEx(id).cues || [])[1] || '')}</span></span></li>`).join('')}</ol>
+        <button class="btn primary block" data-act="g-start">▶ Start the gauntlet</button>
+      </section>`;
+    }
+    const now = gNow();
+    const seg = now.seg || ui.gRun.segs[ui.gRun.segs.length - 1];
+    const ex = getEx(seg.move);
+    const work = seg.kind === 'work';
+    const label = work ? `Round ${seg.round + 1} of ${g.rounds} · Move ${seg.i + 1} of ${g.moves.length}`
+      : seg.kind === 'ready' ? 'Get ready' : seg.kind === 'round' ? `Round ${seg.round} done · rest` : 'Switch';
+    const nextWork = ui.gRun.segs.slice(now.i + 1).find((x) => x.kind === 'work');
+    return `<section class="card gauntlet-run live ${work ? 'work' : 'rest'}">
+      <p class="g-label">${esc(label)}</p>
+      <h2 class="g-move">${work ? '' : 'Next: '}${esc(ex.name)}</h2>
+      <div class="g-live">
+        <div class="ex-fig g-fig" data-fig="${esc(ex.id)}"></div>
+        <div class="g-clock"><b id="g-t">${Math.ceil(now.left)}</b><span>${work ? 'seconds' : 'to go'}</span></div>
+      </div>
+      ${work && nextWork ? `<p class="g-next">Then: ${esc(getEx(nextWork.move).name)}</p>` : ''}
+      <div class="g-bar"><i id="g-bar" style="width:${(now.el / now.total) * 100}%"></i></div>
+      <div class="g-btns">
+        <button class="btn ghost" data-act="g-pause">${ui.gRun.pausedAt ? '▶ Resume' : '❚❚ Pause'}</button>
+        <button class="btn ghost" data-act="g-skip">Skip ›</button>
+        <button class="btn ghost" data-act="g-end">End</button>
+      </div>
+    </section>`;
+  }
+
+  // called by the clock: update the countdown, beep on changes, finish at the end
+  function gTick() {
+    const R = ui.gRun;
+    if (!R || R.pausedAt) return;
+    const now = gNow();
+    if (!now.seg) { gFinish(); return; }
+    if (now.i !== R.seg) {
+      const was = R.seg;
+      R.seg = now.i;
+      if (was !== undefined) {
+        if (now.seg.kind === 'work') { beep(1046, 350); if (navigator.vibrate) navigator.vibrate(300); }
+        else { beep(660, 250); if (navigator.vibrate) navigator.vibrate([120, 80, 120]); }
+      }
+      render();
+      return;
+    }
+    const sec = Math.ceil(now.left);
+    if (sec <= 3 && sec >= 1 && R.tick !== `${now.i}:${sec}`) { R.tick = `${now.i}:${sec}`; beep(now.seg.kind === 'work' ? 520 : 780, 90, 0.12); }
+    const t = document.getElementById('g-t');
+    if (t) t.textContent = sec;
+    const bar = document.getElementById('g-bar');
+    if (bar) bar.style.width = `${(now.el / now.total) * 100}%`;
+  }
+  function gFinish(early) {
+    const A = D.active;
+    const R = ui.gRun;
+    if (!R || !A || R.wo !== A.startedAt) { ui.gRun = null; return; }
+    const it = A.items[R.idx];
+    const work = gWorkByRound(it);
+    ui.gRun = null;
+    delete A.gRun;
+    holdWake(false);
+    const rounds = work.filter((x) => x > 0).length;
+    if (!rounds) { toast('Gauntlet stopped. Nothing logged.'); render(); return; }
+    it.sets = work.filter((x) => x > 0).map((x) => ({ w: '0', r: String(x), done: true }));
+    beep(1318, 500);
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+    toast(early ? `Gauntlet ended: ${rounds} round${rounds === 1 ? '' : 's'} logged` : 'Ab Gauntlet done 💪');
+    ui.justFinishedLift = true;
+    save(); render();
+  }
+
   // ------------------------------------------------------------ time estimate
   // Rough length of a workout: each set (about 4 s per rep, or the hold time, plus
   // ~15 s to set up), your rest timer between sets, ~1 min moving to the next lift,
   // and ~2.5 min of warm-up sets before a loaded compound lift.
-  function liftSecs(ex, setsLeft = ex.sets || 3, fresh = true) {
+  function liftSecs(ex, setsLeft = ex.sets || 3, fresh = true, g = null) {
     if (setsLeft <= 0) return 0;
+    if (ex.id === G_ID) { const cfg = g || ui.gPlan || G_FORMAT.full; return gSecs({ moves: [0, 0, 0, 0], ...cfg }, setsLeft) + 60; }
     const rest = D.rest || 90;
     const work = (ex.timed ? repMid(ex) : repMid(ex) * 4) + 15;
     const warm = fresh && !ex.bw && !ex.timed && isCompound(ex) ? 150 : 0;
     return setsLeft * work + (setsLeft - 1) * rest + 60 + warm;
   }
-  const planSecs = (ids) => ids.reduce((t, id) => t + liftSecs(getEx(id)), 0);
+  const planSecs = (ids) => ids.reduce((t, id) => t + liftSecs(getEx(id), id === G_ID && ui.gPlan ? ui.gPlan.rounds : undefined), 0);
   const woLeftSecs = (A) => A.items.reduce((t, it) => (it.skipped ? t
-    : t + liftSecs(getEx(it.exId), it.sets.filter((x) => !x.done).length, !it.sets.some((x) => x.done))), 0);
+    : t + liftSecs(getEx(it.exId), it.sets.filter((x) => !x.done).length, !it.sets.some((x) => x.done), it.g)), 0);
   function durText(sec) {
     const m = Math.max(5, Math.round(sec / 300) * 5);
     return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`;
@@ -2389,7 +2673,14 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     </section>`;
   }
 
-  const newItem = (exId) => ({ exId, sets: Array.from({ length: getEx(exId).sets || 3 }, () => ({ w: '', r: '', done: false })), skipped: false });
+  const newItem = (exId) => {
+    if (exId === G_ID) {
+      const g = ui.gPlan || makeGauntlet();
+      ui.gPlan = null;
+      return { exId, g, sets: Array.from({ length: g.rounds }, () => ({ w: '', r: '', done: false })), skipped: false };
+    }
+    return { exId, sets: Array.from({ length: getEx(exId).sets || 3 }, () => ({ w: '', r: '', done: false })), skipped: false };
+  };
   const itemDone = (it) => it.skipped || (it.sets.length > 0 && it.sets.every((s) => s.done));
 
   // ---------------------------------------------------------------- render
@@ -2462,6 +2753,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       <p class="sub pad">No equipment for a lift? Tap <b>Swap</b> for one that works the same muscles with different gear. Tap again for the next option, or <b>Choose</b> to pick anything.</p>
       <div class="lift-list">
         ${ui.plan.map((id, i) => {
+          if (id === G_ID) return gauntletPlanCard(i);
           const ex = getEx(id);
           const last = lastLine(id);
           return `<article class="lift-card">
@@ -2483,6 +2775,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         }).join('') || '<p class="empty">No lifts yet. Add one below.</p>'}
       </div>
       <button class="btn ghost block add" data-act="open-picker" data-mode="plan-add">+ Add another exercise</button>
+      ${ui.plan.includes(G_ID) ? '' : `<button class="btn ghost block add g-add" data-act="g-add">⚡ Add an ab gauntlet <span class="muted">· ~${Math.round(gSecs(makeGaunt0()) / 60)} min core finisher</span></button>`}
       ${ui.plan.length ? `<p class="time-est"><span aria-hidden="true">⏱</span> About <b>${durText(planSecs(ui.plan))}</b>, counting ${D.rest ? `${D.rest < 60 ? `${D.rest} s` : `${(D.rest / 60).toString().replace('.5', ':30')} min`} rest between sets` : 'about 90 s rest between sets'} and warm-up sets.</p>` : ''}
       ${coverageCard(ui.plan, ui.groups)}
       <div class="cta-bar"><button class="btn primary block" data-act="start" ${ui.plan.length ? '' : 'disabled'}>Start workout · ${ui.plan.length} lifts${ui.plan.length ? ` · ~${durText(planSecs(ui.plan))}` : ''}</button></div>`;
@@ -2546,7 +2839,10 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     }).join('');
 
     let cta;
-    if (allDone) cta = `<button id="next-cta" class="btn primary block" data-act="finish">Finish workout</button>`;
+    const gLive = it.g && ui.gRun && ui.gRun.wo === A.startedAt && ui.gRun.idx === A.idx;
+    if (gLive) cta = '';
+    else if (it.g && !done) cta = `<button class="link muted-link" data-act="wo-skip">Skip the gauntlet</button>`;
+    else if (allDone) cta = `<button id="next-cta" class="btn primary block" data-act="finish">Finish workout</button>`;
     else if (done && nextIdx >= 0) cta = `<button id="next-cta" class="btn primary block" data-act="goto" data-i="${nextIdx}">Next: ${esc(getEx(A.items[nextIdx].exId).name)} →</button>`;
     else if (it.sets.some((s) => s.done)) cta = `<div class="split">
         <button class="btn ghost" data-act="wo-skip">Skip remaining sets</button>
@@ -2566,7 +2862,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         ${A.items.map((x, i) => `<li><button data-act="goto" data-i="${i}" class="dot${i === A.idx ? ' cur' : ''}${itemDone(x) ? (x.skipped ? ' skip' : ' ok') : ''}" aria-label="${esc(getEx(x.exId).name)}${itemDone(x) ? ' (done)' : ''}"></button></li>`).join('')}
       </ol>
 
-      <section class="card ex-card">
+      ${it.g ? gauntletCard(it) : `<section class="card ex-card">
         <div class="ex-fig" data-fig="${esc(ex.id)}"></div>
         <div class="ex-info">
           <h2>${esc(ex.name)}</h2>
@@ -2592,7 +2888,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         </div>
         ${ex.timed ? holdCard(it) : ''}
         ${ui.rest ? `<div class="rest" id="rest"><span>Rest</span><b id="rest-t">0:00</b><div class="rest-bar"><i id="rest-bar"></i></div><button class="link" data-act="rest-add">+30s</button><button class="link" data-act="rest-skip">Skip</button></div>` : ''}
-      </section>
+      </section>`}
 
       <div class="wo-cta">${cta}</div>
 
@@ -2601,10 +2897,12 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         <ul>${A.items.map((x, i) => {
           const e = getEx(x.exId);
           const n = x.sets.filter((s) => s.done).length;
-          const state = x.skipped ? 'Skipped' : itemDone(x) ? 'Done' : n ? `${n}/${x.sets.length} sets` : `${x.sets.length} sets`;
+          const unitW = x.g ? 'rounds' : 'sets';
+          const state = x.skipped ? 'Skipped' : itemDone(x) ? 'Done' : n ? `${n}/${x.sets.length} ${unitW}` : `${x.sets.length} ${unitW}`;
           return `<li class="${i === A.idx ? 'cur' : ''}"><button data-act="goto" data-i="${i}"><span>${esc(e.name)}</span><span class="muted">${state}</span></button></li>`;
         }).join('')}</ul>
         <button class="link" data-act="open-picker" data-mode="wo-add">+ Add exercise</button>
+        ${A.items.some((x) => x.exId === G_ID) ? '' : '<button class="link" data-act="g-add-wo">⚡ Add an ab gauntlet</button>'}
         <button class="link danger" data-act="discard">Discard workout</button>
       </section>`;
   }
@@ -2873,6 +3171,40 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       save(); render(); window.scrollTo(0, 0);
     },
     goto(b) { D.active.idx = +b.dataset.i; ui.rest = null; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+    'g-add'() { ui.gPlan = makeGauntlet(); ui.plan.push(G_ID); render(); },
+    'g-add-wo'() {
+      ui.gPlan = null;
+      D.active.items.push(newItem(G_ID));
+      D.active.idx = D.active.items.length - 1;
+      save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    'g-shuffle'() { ui.gPlan = makeGauntlet(ui.gPlan); render(); },
+    'g-rounds'(b) { ui.gPlan.rounds = Math.min(5, Math.max(1, ui.gPlan.rounds + +b.dataset.d)); render(); },
+    'g-start'() {
+      const it = currentItem();
+      ui.gRun = { wo: D.active.startedAt, idx: D.active.idx, t0: Date.now(), offset: 0, pausedAt: 0, segs: gSegments(it.g) };
+      ui.rest = null; ui.hold = null;
+      beep(880, 120, 0.12); // also unlocks sound on iPhone, which needs a tap first
+      holdWake(true);
+      D.active.gRun = ui.gRun; save(); // survives the page reloading mid-circuit
+      render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    'g-pause'() {
+      const R = ui.gRun;
+      if (!R) return;
+      if (R.pausedAt) { R.offset += Date.now() - R.pausedAt; R.pausedAt = 0; holdWake(true); } else { R.pausedAt = Date.now(); holdWake(false); }
+      save(); render();
+    },
+    'g-skip'() {
+      const R = ui.gRun, now = gNow();
+      if (!R || !now.seg) return;
+      if (now.seg.kind === 'work') (R.cut = R.cut || {})[now.i] = Math.max(0, now.el - now.seg.at);
+      R.offset -= now.left * 1000;
+      save();
+      gTick();
+      render();
+    },
+    'g-end'() { gFinish(true); },
     'hold-start'() {
       const it = currentItem();
       const i = it.sets.findIndex((x) => !x.done);
@@ -2954,7 +3286,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         const msg = pending || untouched ? 'Finish now? Sets you haven\'t checked off won\'t be saved.' : 'Finish workout?';
         if (!confirm(msg)) return;
       }
-      const entries = A.items.map((it) => ({ exId: it.exId, name: getEx(it.exId).name, sets: it.sets.filter((s) => s.done).map((s) => ({ w: +s.w || 0, r: +s.r || 0 })) })).filter((e) => e.sets.length);
+      const entries = A.items.map((it) => ({ exId: it.exId, name: getEx(it.exId).name, sets: it.sets.filter((s) => s.done).map((s) => ({ w: +s.w || 0, r: +s.r || 0 })), ...(it.g ? { moves: it.g.moves } : {}) })).filter((e) => e.sets.length);
       if (!entries.length) {
         if (confirm('No sets were checked off, so there is nothing to save. Discard this workout?')) { D.active = null; ui.rest = null; save(); ui.step = 'groups'; render(); }
         return;
@@ -2971,13 +3303,14 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       askPersist();
       D.active = null;
       ui.rest = null;
+      ui.gRun = null; holdWake(false);
       ui.summary = { duration: session.durationMin, sets: entries.reduce((t, e) => t + e.sets.length, 0), volume: Store.sessionVolume(session), prs, entries };
       ui.step = 'groups'; ui.groups = []; ui.plan = [];
       save(); render(); window.scrollTo(0, 0);
     },
     discard() {
       if (!confirm('Discard this workout? Nothing from it will be saved.')) return;
-      D.active = null; ui.rest = null; ui.step = 'plan'; save(); render();
+      D.active = null; ui.rest = null; ui.gRun = null; holdWake(false); ui.step = 'plan'; save(); render();
     },
     'summary-done'() { ui.summary = null; render(); window.scrollTo(0, 0); },
     metric(b) { ui.metric = b.dataset.m; render(); },
@@ -3053,6 +3386,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 
   // ------------------------------------------------------------- live clock
   function tickClock() {
+    if (ui.gRun) gTick();
     if (ui.hold) { const h = document.getElementById('hold-t'); if (h) h.textContent = fmtUp(Date.now() - ui.hold.start); }
     const el = document.querySelector('[data-elapsed]');
     if (el && D.active) {
@@ -3146,6 +3480,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
   window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (ui.tab === 'progress') drawCharts(); }, 150); });
 
   if (isStandalone() && D.sessions.length) askPersist();
+  if (D.active && D.active.gRun) ui.gRun = D.active.gRun;
   render();
 })();
 
