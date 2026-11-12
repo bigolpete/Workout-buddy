@@ -120,6 +120,13 @@ h3 { font-size: 1rem; }
 .f-cable { stroke: var(--eq); stroke-dasharray: 3 3; }
 .f-pulley { fill: none; stroke: var(--eq); stroke-width: 2; }
 .f-ghost { opacity: .25; }
+.f-hub { fill: var(--surface-2); }
+.f-eq-fill { fill: var(--eq); opacity: .55; }
+[data-act="flip-fig"] { position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+[data-act="flip-fig"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fig-tag { position: absolute; right: 6px; bottom: 5px; font-size: .68rem; font-weight: 700; color: var(--ink-2);
+  background: rgba(15, 16, 18, .72); border-radius: 999px; padding: 2px 7px; pointer-events: none; }
+.thumb .fig-tag { font-size: .6rem; right: 3px; bottom: 3px; padding: 1px 5px; }
 
 /* muscle groups */
 .group-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
@@ -216,6 +223,14 @@ h3 { font-size: 1rem; }
 .rest.over { background: var(--accent-soft); }
 .rest.over b { color: var(--accent); }
 .rest .link { padding: 4px; }
+.hold { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface-2); border-radius: 12px; padding: 12px 14px; }
+.hold.on { background: var(--accent-soft); outline: 1px solid var(--accent); }
+.hold-txt { display: grid; gap: 1px; }
+.hold-txt > span:first-child { font-size: .78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.hold-txt b { font-size: 2rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.hold.on .hold-txt b { color: var(--accent); }
+.hold-txt .muted { font-size: .8rem; }
+.hold-btns { display: grid; gap: 4px; justify-items: center; }
 
 .wo-cta { margin: 4px 0 14px; }
 .upnext ul { list-style: none; margin: 8px 0; padding: 0; }
@@ -451,7 +466,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 
   // ---- shared pose fragments -------------------------------------------
   const STAND = { hx: 100, hy: 118, t: 0, ua: 0, fa: 0, foot: [102, 182], foot2: [98, 182] };
-  const LIE = { hx: 65, hy: 128, t: 90, foot: [42, 182], toe: [33, 182], lb: 'up' };
+  const LIE = { hx: 65, hy: 128, t: 90, foot: [42, 182], toe: [33, 182], lb: 'up', wK: 22, wF: 28 };
   const BENCH = [
     { type: 'line', x1: 40, y1: 135, x2: 140, y2: 135, w: 6 },
     { type: 'line', x1: 55, y1: 135, x2: 55, y2: 182, w: 3 },
@@ -463,29 +478,30 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     { type: 'line', x1: 70, y1: 157, x2: 112, y2: 157, w: 6 },
     { type: 'line', x1: 92, y1: 157, x2: 92, y2: 182, w: 3 },
   ];
-  const PUSHUP_A = { hx: 98, hy: 153, t: 65, hand: [140, 181], ab: 'back', foot: [40, 175], toe: [44, 182] };
-  const PUSHUP_B = { hx: 101, hy: 166, t: 78, hand: [140, 181], ab: 'back', foot: [40, 175], toe: [44, 182] };
+  const PUSHUP_A = { hx: 98, hy: 153, t: 65, hand: [140, 181], ab: 'back', foot: [40, 175], toe: [44, 182], wH: 26, wE: 27, wF: 7, wK: 8 };
+  const PUSHUP_B = { hx: 101, hy: 166, t: 78, hand: [140, 181], ab: 'back', foot: [40, 175], toe: [44, 182], wH: 26, wE: 36, wF: 7, wK: 8 };
 
   const EX = [
     // ---------------------------------------------------------------- CHEST
     {
       id: 'bench-press', name: 'Barbell Bench Press', groups: ['chest', 'triceps'], equip: 'Barbell', sets: 3, reps: '6–10',
       cues: ['Lie with eyes under the bar, feet flat, shoulder blades squeezed together.', 'Lower the bar under control to your mid-chest, elbows about 45° from your body.', 'Press up and slightly back until your arms are straight over your shoulders.'],
-      anim: { a: { ...LIE, ua: 180, fa: 180 }, b: { ...LIE, ua: 300, fa: 177 }, eq: [...BENCH, { type: 'bb' }] },
+      anim: { cam: -1, a: { ...LIE, ua: 180, fa: 180, wE: 28, wH: 27 }, b: { ...LIE, ua: 300, fa: 177, wE: 37, wH: 27 }, eq: [...BENCH, { type: 'bb' }] },
     },
     {
       id: 'incline-db-press', name: 'Incline Dumbbell Press', groups: ['chest', 'shoulders'], equip: 'Dumbbell', sets: 3, reps: '8–12',
       cues: ['Set the bench to 30–45°. Start with dumbbells over your upper chest.', 'Lower until the dumbbells are beside your chest with a slight stretch.', 'Press up and slightly together without clanging the weights.'],
       anim: {
-        a: { hx: 75, hy: 150, t: 60, ua: 185, fa: 185, foot: [43, 182], toe: [34, 182], lb: 'up' },
-        b: { hx: 75, hy: 150, t: 60, ua: 320, fa: 190, foot: [43, 182], toe: [34, 182], lb: 'up' },
-        eq: [{ type: 'line', x1: 79, y1: 156, x2: 124, y2: 129, w: 6 }, { type: 'line', x1: 48, y1: 157, x2: 84, y2: 157, w: 6 }, { type: 'line', x1: 84, y1: 157, x2: 84, y2: 182, w: 3 }, { type: 'db' }],
+        cam: -1,
+        a: { hx: 75, hy: 150, t: 60, ua: 185, fa: 185, foot: [43, 182], toe: [34, 182], lb: 'up', wE: 20, wH: 14, wK: 22, wF: 28 },
+        b: { hx: 75, hy: 150, t: 60, ua: 320, fa: 190, foot: [43, 182], toe: [34, 182], lb: 'up', wE: 35, wH: 29, wK: 22, wF: 28 },
+        eq: [{ type: 'line', x1: 79, y1: 156, x2: 124, y2: 129, w: 6 }, { type: 'line', x1: 48, y1: 157, x2: 84, y2: 157, w: 6 }, { type: 'line', x1: 84, y1: 157, x2: 84, y2: 182, w: 3 }, { type: 'db', g: 'x' }],
       },
     },
     {
       id: 'db-bench', name: 'Dumbbell Bench Press', groups: ['chest'], equip: 'Dumbbell', sets: 3, reps: '8–12',
       cues: ['Lie flat with dumbbells over your chest, palms facing your feet.', 'Lower slowly until your elbows are just below the bench line.', 'Drive the weights back up, keeping your wrists stacked over your elbows.'],
-      anim: { a: { ...LIE, ua: 180, fa: 180 }, b: { ...LIE, ua: 305, fa: 180 }, eq: [...BENCH, { type: 'db' }] },
+      anim: { cam: -1, a: { ...LIE, ua: 180, fa: 180, wE: 20, wH: 13 }, b: { ...LIE, ua: 305, fa: 180, wE: 35, wH: 29 }, eq: [...BENCH, { type: 'db', g: 'x' }] },
     },
     {
       id: 'push-up', name: 'Push-Up', groups: ['chest', 'triceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '10–20',
@@ -497,8 +513,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       cues: ['Set both pulleys high. Step forward with a slight bend in your elbows.', 'Bring your hands together in front of your chest in a wide hugging arc.', 'Return slowly until you feel a stretch across your chest.'],
       anim: {
         view: 'front',
-        a: { hx: 100, hy: 118, ua: 75, fa: 60, th: 6, sh: 2 },
-        b: { hx: 100, hy: 118, ua: 35, fa: -75, th: 6, sh: 2 },
+        a: { hx: 100, hy: 118, ua: 75, fa: 60, th: 6, sh: 2, dE: -4, dH: 0 },
+        b: { hx: 100, hy: 118, ua: 35, fa: -75, th: 6, sh: 2, dE: 12, dH: 34 },
         eq: [{ type: 'cable', px: 14, py: 30, at: 'hand' }, { type: 'cable', px: 186, py: 30, at: 'hand2' }],
       },
     },
@@ -506,8 +522,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'chest-dip', name: 'Chest Dip', groups: ['chest', 'triceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '6–12',
       cues: ['Support yourself on the bars with straight arms.', 'Lean your torso forward slightly and lower until your shoulders are just below your elbows.', 'Press back up to straight arms without shrugging.'],
       anim: {
-        a: { hx: 98, hy: 100, t: 5, hand: [102, 101], ab: 'back', th: 10, sh: -60, toe: [72, 155] },
-        b: { hx: 92, hy: 124, t: 25, hand: [102, 101], ab: 'back', th: 10, sh: -60, toe: [66, 179] },
+        a: { hx: 98, hy: 100, t: 5, hand: [102, 101], ab: 'back', th: 10, sh: -60, toe: [72, 155], wH: 24, wE: 25, wK: 7, wF: 6 },
+        b: { hx: 92, hy: 124, t: 25, hand: [102, 101], ab: 'back', th: 10, sh: -60, toe: [66, 179], wH: 24, wE: 30, wK: 7, wF: 6 },
         eq: [{ type: 'line', x1: 72, y1: 104, x2: 138, y2: 104, w: 4 }, { type: 'line', x1: 132, y1: 104, x2: 132, y2: 182, w: 3 }],
       },
     },
@@ -515,7 +531,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'machine-chest-press', name: 'Machine Chest Press', groups: ['chest'], equip: 'Machine', sets: 3, reps: '10–12',
       cues: ['Adjust the seat so the handles line up with your mid-chest.', 'Press forward until your arms are nearly straight.', 'Let the handles come back slowly without letting the stack touch down.'],
       anim: {
-        a: { ...SEAT, t: -8, hand: [94, 106], ab: 'back' }, b: { ...SEAT, t: -8, hand: [131, 105], ab: 'back' },
+        a: { ...SEAT, t: -8, hand: [94, 106], ab: 'back', wE: 32, wH: 24 }, b: { ...SEAT, t: -8, hand: [131, 105], ab: 'back', wE: 26, wH: 24 },
         eq: [...SEAT_EQ, { type: 'line', x1: 78, y1: 152, x2: 71, y2: 100, w: 6 }, { type: 'grip' }],
       },
     },
@@ -525,39 +541,39 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'lat-pulldown', name: 'Lat Pulldown', groups: ['back', 'biceps'], equip: 'Cable', sets: 3, reps: '8–12',
       cues: ['Grip the bar a little wider than shoulders and lock your knees under the pad.', 'Pull the bar to your upper chest, driving your elbows down toward your ribs.', 'Let it rise slowly until your arms are straight overhead.'],
       anim: {
-        a: { ...SEAT, hx: 95, t: 0, ua: 175, fa: 178 }, b: { ...SEAT, hx: 95, t: -6, ua: -15, fa: 165 },
-        eq: [{ type: 'line', x1: 75, y1: 157, x2: 115, y2: 157, w: 6 }, { type: 'line', x1: 95, y1: 157, x2: 95, y2: 182, w: 3 }, { type: 'line', x1: 121, y1: 142, x2: 135, y2: 142, w: 5 }, { type: 'cable', px: 98, py: 16 }],
+        a: { ...SEAT, hx: 95, t: 0, ua: 175, fa: 178, wE: 33, wH: 38 }, b: { ...SEAT, hx: 95, t: -6, ua: -15, fa: 165, wE: 40, wH: 38 },
+        eq: [{ type: 'line', x1: 75, y1: 157, x2: 115, y2: 157, w: 6 }, { type: 'line', x1: 95, y1: 157, x2: 95, y2: 182, w: 3 }, { type: 'line', x1: 121, y1: 142, x2: 135, y2: 142, w: 5 }, { type: 'cable', px: 98, py: 16 }, { type: 'grip' }],
       },
     },
     {
       id: 'pull-up', name: 'Pull-Up', groups: ['back', 'biceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '5–10',
       cues: ['Hang from the bar with hands slightly wider than shoulders.', 'Pull your chest toward the bar until your chin clears it.', 'Lower all the way to a full hang under control.'],
       anim: {
-        a: { hx: 100, hy: 126, t: 0, hand: [103, 30], ab: 'fwd', th: 0, sh: -60 },
-        b: { hx: 100, hy: 92, t: 0, hand: [103, 30], ab: 'fwd', th: 10, sh: -60 },
-        eq: [{ type: 'line', x1: 55, y1: 29, x2: 145, y2: 29, w: 4 }],
+        a: { hx: 100, hy: 126, t: 0, hand: [103, 30], ab: 'fwd', th: 0, sh: -60, wE: 30, wH: 36, wK: 7, wF: 6 },
+        b: { hx: 100, hy: 92, t: 0, hand: [103, 30], ab: 'fwd', th: 10, sh: -60, wE: 42, wH: 36, wK: 7, wF: 6 },
+        eq: [{ type: 'line', x1: 55, y1: 29, x2: 145, y2: 29, w: 4, x: true }],
         period: 3000,
       },
     },
     {
       id: 'barbell-row', name: 'Bent-Over Barbell Row', groups: ['back'], equip: 'Barbell', sets: 3, reps: '6–10',
       cues: ['Hinge at the hips until your torso is close to parallel, back flat.', 'Row the bar to your lower ribs, squeezing your shoulder blades together.', 'Lower to straight arms without letting your back round.'],
-      anim: { a: { ...HINGE, hand: [135, 156], ab: 'up' }, b: { ...HINGE, hand: [121, 121], ab: 'up' }, eq: [{ type: 'bb' }] },
+      anim: { a: { ...HINGE, hand: [135, 156], ab: 'up', wE: 21, wH: 21 }, b: { ...HINGE, hand: [121, 121], ab: 'up', wE: 29, wH: 21 }, eq: [{ type: 'bb' }] },
     },
     {
       id: 'db-row', name: 'One-Arm Dumbbell Row', groups: ['back'], equip: 'Dumbbell', sets: 3, reps: '8–12',
       cues: ['Brace one hand on a bench, back flat, dumbbell hanging below your shoulder.', 'Pull the dumbbell toward your hip, keeping your elbow close to your body.', 'Lower to a full stretch. Do all reps, then switch sides.'],
       anim: {
-        a: { ...HINGE, hand: [135, 156], ab: 'up', ua2: 10, fa2: 10 }, b: { ...HINGE, hand: [119, 121], ab: 'up', ua2: 10, fa2: 10 },
-        eq: [{ type: 'line', x1: 125, y1: 160, x2: 185, y2: 160, w: 6 }, { type: 'line', x1: 176, y1: 160, x2: 176, y2: 182, w: 3 }, { type: 'db', at: 'hand' }],
+        a: { ...HINGE, hand: [135, 156], ab: 'up', ua2: 10, fa2: 10, wE: 19, wH: 19 }, b: { ...HINGE, hand: [119, 121], ab: 'up', ua2: 10, fa2: 10, wE: 22, wH: 19 },
+        eq: [{ type: 'line', x1: 125, y1: 160, x2: 185, y2: 160, w: 6 }, { type: 'line', x1: 176, y1: 160, x2: 176, y2: 182, w: 3 }, { type: 'db', at: 'hand', g: 'z' }],
       },
     },
     {
       id: 'cable-row', name: 'Seated Cable Row', groups: ['back'], equip: 'Cable', sets: 3, reps: '10–12',
       cues: ['Sit tall with a slight bend in your knees, arms reaching forward.', 'Pull the handle to your stomach, chest up, shoulders back.', 'Reach forward slowly to let your shoulder blades stretch apart.'],
       anim: {
-        a: { hx: 70, hy: 160, t: 15, hand: [129, 119], ab: 'back', foot: [132, 166], lb: 'up' },
-        b: { hx: 70, hy: 160, t: -8, hand: [75, 128], ab: 'back', foot: [132, 166], lb: 'up' },
+        a: { hx: 70, hy: 160, t: 15, hand: [129, 119], ab: 'back', foot: [132, 166], lb: 'up', wE: 12, wH: 6, wK: 14, wF: 12 },
+        b: { hx: 70, hy: 160, t: -8, hand: [75, 128], ab: 'back', foot: [132, 166], lb: 'up', wE: 22, wH: 6, wK: 14, wF: 12 },
         eq: [{ type: 'line', x1: 45, y1: 166, x2: 95, y2: 166, w: 6 }, { type: 'line', x1: 60, y1: 166, x2: 60, y2: 182, w: 3 }, { type: 'line', x1: 139, y1: 150, x2: 139, y2: 180, w: 4 }, { type: 'cable', px: 178, py: 120 }],
       },
     },
@@ -565,8 +581,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'deadlift', name: 'Deadlift', groups: ['back', 'legs'], equip: 'Barbell', sets: 3, reps: '3–6',
       cues: ['Bar over mid-foot. Hinge down and grip just outside your knees.', 'Brace hard, then push the floor away and stand up with the bar close to your legs.', 'Lock out by squeezing your glutes, then hinge back down with a flat back.'],
       anim: {
-        a: { hx: 63, hy: 136, t: 68, hand: [106, 168], foot: [100, 182], foot2: [96, 182] },
-        b: { ...STAND, hand: [101, 121] },
+        a: { hx: 63, hy: 136, t: 68, hand: [106, 168], foot: [100, 182], foot2: [96, 182], wE: 20, wH: 20, wK: 12 },
+        b: { ...STAND, hand: [101, 121], wE: 20, wH: 20, wK: 11 },
         eq: [{ type: 'bb' }], period: 3200,
       },
     },
@@ -574,7 +590,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'straight-arm-pulldown', name: 'Straight-Arm Pulldown', groups: ['back'], equip: 'Cable', sets: 3, reps: '12–15',
       cues: ['Face a high pulley, lean slightly forward, arms nearly straight.', 'Sweep the bar down in an arc to your thighs using your lats.', 'Let it rise back to eye level without bending your elbows more.'],
       anim: {
-        a: { ...STAND, hx: 95, t: 15, ua: 135, fa: 135 }, b: { ...STAND, hx: 95, t: 15, ua: 5, fa: 5 },
+        a: { ...STAND, hx: 95, t: 15, ua: 135, fa: 135, wE: 15, wH: 13 }, b: { ...STAND, hx: 95, t: 15, ua: 5, fa: 5, wE: 17, wH: 15 },
         eq: [{ type: 'cable', px: 168, py: 22 }],
       },
     },
@@ -582,7 +598,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'face-pull', name: 'Face Pull', groups: ['back', 'shoulders'], equip: 'Cable', sets: 3, reps: '12–15',
       cues: ['Set a rope at face height. Hold with thumbs pointing back toward you.', 'Pull the rope toward your forehead, elbows high and wide.', 'Pause, squeeze your upper back, and return slowly.'],
       anim: {
-        a: { ...STAND, hx: 98, t: -5, ua: 85, fa: 88 }, b: { ...STAND, hx: 98, t: -5, ua: -80, fa: 170 },
+        a: { ...STAND, hx: 98, t: -5, ua: 85, fa: 88, wE: 14, wH: 7 }, b: { ...STAND, hx: 98, t: -5, ua: -80, fa: 170, wE: 40, wH: 24 },
         eq: [{ type: 'cable', px: 182, py: 70 }],
       },
     },
@@ -591,82 +607,83 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     {
       id: 'ohp', name: 'Overhead Press', groups: ['shoulders', 'triceps'], equip: 'Barbell', sets: 3, reps: '5–8',
       cues: ['Start with the bar on your front shoulders, grip just outside shoulder width.', 'Squeeze your glutes and press the bar straight up, moving your head back out of the way.', 'Finish with the bar over your mid-foot, arms locked, then lower to your shoulders.'],
-      anim: { a: { ...STAND, ua: 25, fa: 175 }, b: { ...STAND, ua: 178, fa: 179 }, eq: [{ type: 'bb' }] },
+      anim: { a: { ...STAND, ua: 25, fa: 175, wE: 26, wH: 24 }, b: { ...STAND, ua: 178, fa: 179, wE: 22, wH: 22 }, eq: [{ type: 'bb' }] },
     },
     {
       id: 'db-shoulder-press', name: 'Dumbbell Shoulder Press', groups: ['shoulders', 'triceps'], equip: 'Dumbbell', sets: 3, reps: '8–12',
       cues: ['Hold dumbbells at shoulder height, elbows slightly in front of your body.', 'Press up until your arms are straight and the dumbbells nearly touch.', 'Lower back to shoulder height under control.'],
-      anim: { view: 'front', a: { hx: 100, hy: 118, ua: 80, fa: 175 }, b: { hx: 100, hy: 118, ua: 165, fa: 185 }, eq: [{ type: 'db' }] },
+      anim: { view: 'front', a: { hx: 100, hy: 118, ua: 80, fa: 175 }, b: { hx: 100, hy: 118, ua: 165, fa: 185 }, eq: [{ type: 'db', g: 'x' }] },
     },
     {
       id: 'lateral-raise', name: 'Lateral Raise', groups: ['shoulders'], equip: 'Dumbbell', sets: 3, reps: '12–15',
       cues: ['Stand tall, dumbbells at your sides, a soft bend in your elbows.', 'Raise your arms out to the sides until they reach shoulder height.', 'Lower slowly. Lead with your elbows, not your hands.'],
-      anim: { view: 'front', a: { hx: 100, hy: 118, ua: 8, fa: 10 }, b: { hx: 100, hy: 118, ua: 85, fa: 92 }, eq: [{ type: 'db' }] },
+      anim: { view: 'front', a: { hx: 100, hy: 118, ua: 8, fa: 10 }, b: { hx: 100, hy: 118, ua: 85, fa: 92 }, eq: [{ type: 'db', g: 'z' }] },
     },
     {
       id: 'front-raise', name: 'Front Raise', groups: ['shoulders'], equip: 'Dumbbell', sets: 3, reps: '10–15',
       cues: ['Stand with dumbbells in front of your thighs.', 'Raise them in front of you to shoulder height with nearly straight arms.', 'Lower slowly without swinging your torso.'],
-      anim: { a: { ...STAND }, b: { ...STAND, ua: 95, fa: 95 }, eq: [{ type: 'db' }] },
+      anim: { a: { ...STAND, wE: 17, wH: 16 }, b: { ...STAND, ua: 95, fa: 95, wE: 17, wH: 16 }, eq: [{ type: 'db', g: 'x' }] },
     },
     {
       id: 'rear-delt-fly', name: 'Rear Delt Fly', groups: ['shoulders', 'back'], equip: 'Dumbbell', sets: 3, reps: '12–15',
       cues: ['Hinge forward with a flat back, dumbbells hanging below your chest.', 'Raise your arms out to the sides, leading with the backs of your hands.', 'Squeeze your rear shoulders at the top and lower slowly.'],
-      anim: { view: 'front', a: { hx: 100, hy: 122, tf: 0.3, ua: 4, fa: 4, th: 5, sh: -2 }, b: { hx: 100, hy: 122, tf: 0.3, ua: 84, fa: 92, th: 5, sh: -2 }, eq: [{ type: 'db' }] },
+      anim: { view: 'front', a: { hx: 100, hy: 122, tf: 0.3, ua: 4, fa: 4, th: 5, sh: -2 }, b: { hx: 100, hy: 122, tf: 0.3, ua: 84, fa: 92, th: 5, sh: -2 }, eq: [{ type: 'db', g: 'z' }] },
     },
     {
       id: 'upright-row', name: 'Upright Row', groups: ['shoulders'], equip: 'Barbell', sets: 3, reps: '10–12',
       cues: ['Hold the bar in front of your thighs, hands about shoulder-width.', 'Pull the bar up along your body, elbows leading out and up.', 'Stop around chest height and lower with control.'],
-      anim: { view: 'front', a: { hx: 100, hy: 118, ua: -6, fa: -8 }, b: { hx: 100, hy: 118, ua: 105, fa: -60 }, eq: [{ type: 'bb' }] },
+      anim: { view: 'front', a: { hx: 100, hy: 118, ua: -6, fa: -8, dE: 4, dH: 8 }, b: { hx: 100, hy: 118, ua: 105, fa: -60, dE: 0, dH: 8 }, eq: [{ type: 'bb' }] },
     },
     {
       id: 'shrug', name: 'Dumbbell Shrug', groups: ['shoulders', 'back'], equip: 'Dumbbell', sets: 3, reps: '12–15',
       cues: ['Stand with heavy dumbbells at your sides.', 'Lift your shoulders straight up toward your ears.', 'Pause at the top, then lower slowly. Don\'t roll your shoulders.'],
-      anim: { view: 'front', a: { hx: 100, hy: 118, ua: 2, fa: 2, shr: 0 }, b: { hx: 100, hy: 118, ua: 2, fa: 2, shr: 7 }, eq: [{ type: 'db' }], period: 2000 },
+      anim: { view: 'front', a: { hx: 100, hy: 118, ua: 2, fa: 2, shr: 0 }, b: { hx: 100, hy: 118, ua: 2, fa: 2, shr: 7 }, eq: [{ type: 'db', g: 'z' }], period: 2000 },
     },
 
     // --------------------------------------------------------------- BICEPS
     {
       id: 'barbell-curl', name: 'Barbell Curl', groups: ['biceps'], equip: 'Barbell', sets: 3, reps: '8–12',
       cues: ['Stand tall with the bar at your thighs, palms facing forward.', 'Curl the bar up while keeping your elbows pinned at your sides.', 'Lower all the way down without swinging your back.'],
-      anim: { a: { ...STAND }, b: { ...STAND, ua: 8, fa: 145 }, eq: [{ type: 'bb' }] },
+      anim: { a: { ...STAND, wE: 19, wH: 18 }, b: { ...STAND, ua: 8, fa: 145, wE: 19, wH: 18 }, eq: [{ type: 'bb' }] },
     },
     {
       id: 'db-curl', name: 'Dumbbell Curl', groups: ['biceps'], equip: 'Dumbbell', sets: 3, reps: '8–12',
       cues: ['Hold dumbbells at your sides, palms facing forward.', 'Curl up, keeping your upper arms still, and squeeze at the top.', 'Lower slowly to a full stretch.'],
-      anim: { a: { ...STAND }, b: { ...STAND, ua: 8, fa: 145 }, eq: [{ type: 'db' }] },
+      anim: { a: { ...STAND, wE: 19, wH: 20 }, b: { ...STAND, ua: 8, fa: 145, wE: 19, wH: 18 }, eq: [{ type: 'db', g: 'x' }] },
     },
     {
       id: 'hammer-curl', name: 'Hammer Curl', groups: ['biceps'], equip: 'Dumbbell', sets: 3, reps: '10–12',
       cues: ['Hold dumbbells at your sides with palms facing each other.', 'Curl up keeping that neutral grip the whole way.', 'Lower under control. Works the forearms as well as biceps.'],
-      anim: { a: { ...STAND }, b: { ...STAND, ua: 5, fa: 140 }, eq: [{ type: 'db' }] },
+      anim: { a: { ...STAND, wE: 19, wH: 20 }, b: { ...STAND, ua: 5, fa: 140, wE: 19, wH: 19 }, eq: [{ type: 'db', g: 'z' }] },
     },
     {
       id: 'preacher-curl', name: 'Preacher Curl', groups: ['biceps'], equip: 'Barbell', sets: 3, reps: '8–12',
       cues: ['Sit with the backs of your upper arms flat on the pad.', 'Curl the bar up until your forearms are nearly vertical.', 'Lower slowly. Don\'t let your elbows lift off the pad.'],
       anim: {
-        a: { hx: 85, hy: 150, t: 10, th: 90, sh: 0, ua: 50, fa: 55 }, b: { hx: 85, hy: 150, t: 10, th: 90, sh: 0, ua: 50, fa: 165 },
+        a: { hx: 85, hy: 150, t: 10, th: 90, sh: 0, ua: 50, fa: 55, wE: 13, wH: 15 }, b: { hx: 85, hy: 150, t: 10, th: 90, sh: 0, ua: 50, fa: 165, wE: 13, wH: 15 },
         eq: [{ type: 'line', x1: 101, y1: 128, x2: 124, y2: 141, w: 6 }, { type: 'line', x1: 116, y1: 140, x2: 116, y2: 182, w: 3 }, { type: 'line', x1: 66, y1: 157, x2: 102, y2: 157, w: 6 }, { type: 'bb' }],
       },
     },
     {
       id: 'cable-curl', name: 'Cable Curl', groups: ['biceps'], equip: 'Cable', sets: 3, reps: '10–15',
       cues: ['Face a low pulley holding a straight bar, palms up.', 'Curl the bar to your chest while keeping your elbows by your sides.', 'Lower slowly — the cable keeps tension all the way down.'],
-      anim: { a: { ...STAND }, b: { ...STAND, ua: 8, fa: 145 }, eq: [{ type: 'cable', px: 150, py: 176 }] },
+      anim: { a: { ...STAND, wE: 19, wH: 16 }, b: { ...STAND, ua: 8, fa: 145, wE: 19, wH: 16 }, eq: [{ type: 'cable', px: 150, py: 176 }] },
     },
     {
       id: 'incline-db-curl', name: 'Incline Dumbbell Curl', groups: ['biceps'], equip: 'Dumbbell', sets: 3, reps: '10–12',
       cues: ['Lie back on a bench set to about 45°, arms hanging straight down.', 'Curl both dumbbells without letting your elbows drift forward.', 'Lower to a full stretch at the bottom.'],
       anim: {
-        a: { hx: 95, hy: 150, t: -40, th: 90, sh: 0, ua: -2, fa: -2 }, b: { hx: 95, hy: 150, t: -40, th: 90, sh: 0, ua: 5, fa: 140 },
-        eq: [{ type: 'line', x1: 90, y1: 157, x2: 54, y2: 113, w: 6 }, { type: 'line', x1: 80, y1: 157, x2: 118, y2: 157, w: 6 }, { type: 'line', x1: 95, y1: 157, x2: 95, y2: 182, w: 3 }, { type: 'db' }],
+        a: { hx: 95, hy: 150, t: -40, th: 90, sh: 0, ua: -2, fa: -2, wE: 20, wH: 21 }, b: { hx: 95, hy: 150, t: -40, th: 90, sh: 0, ua: 5, fa: 140, wE: 20, wH: 19 },
+        eq: [{ type: 'line', x1: 90, y1: 157, x2: 54, y2: 113, w: 6 }, { type: 'line', x1: 80, y1: 157, x2: 118, y2: 157, w: 6 }, { type: 'line', x1: 95, y1: 157, x2: 95, y2: 182, w: 3 }, { type: 'db', g: 'x' }],
       },
     },
     {
       id: 'concentration-curl', name: 'Concentration Curl', groups: ['biceps'], equip: 'Dumbbell', sets: 3, reps: '10–12',
       cues: ['Sit on a bench, lean forward and brace your elbow against your inner thigh.', 'Curl the dumbbell toward your shoulder, keeping your upper arm still.', 'Lower all the way down, then switch arms after your reps.'],
       anim: {
-        a: { hx: 90, hy: 150, t: 35, th: 90, sh: 0, ua: 10, fa: 10, ua2: 40, fa2: 60 }, b: { hx: 90, hy: 150, t: 35, th: 90, sh: 0, ua: 10, fa: 150, ua2: 40, fa2: 60 },
-        eq: [...SEAT_EQ, { type: 'db', at: 'hand' }],
+        a: { hx: 90, hy: 150, t: 35, th: 90, sh: 0, ua: 10, fa: 10, ua2: 40, fa2: 60, wE: 12, wH: 10, wE2: 20, wH2: 22, wK: 20, wF: 24 },
+        b: { hx: 90, hy: 150, t: 35, th: 90, sh: 0, ua: 10, fa: 150, ua2: 40, fa2: 60, wE: 12, wH: 10, wE2: 20, wH2: 22, wK: 20, wF: 24 },
+        eq: [...SEAT_EQ, { type: 'db', at: 'hand', g: 'x' }],
       },
     },
 
@@ -674,36 +691,36 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     {
       id: 'tricep-pushdown', name: 'Tricep Pushdown', groups: ['triceps'], equip: 'Cable', sets: 3, reps: '10–15',
       cues: ['Face a high pulley, elbows tucked at your sides.', 'Push the bar or rope down until your arms are fully straight.', 'Let it come back up to about chest height, keeping your elbows still.'],
-      anim: { a: { ...STAND, t: 10, ua: 5, fa: 95 }, b: { ...STAND, t: 10, ua: 5, fa: 5 }, eq: [{ type: 'cable', px: 132, py: 16 }] },
+      anim: { a: { ...STAND, t: 10, ua: 5, fa: 95, wE: 16, wH: 6 }, b: { ...STAND, t: 10, ua: 5, fa: 5, wE: 16, wH: 12 }, eq: [{ type: 'cable', px: 132, py: 16 }] },
     },
     {
       id: 'skull-crusher', name: 'Skull Crusher', groups: ['triceps'], equip: 'Barbell', sets: 3, reps: '8–12',
       cues: ['Lie on a bench holding the bar over your chest with straight arms.', 'Bend only at the elbows, lowering the bar toward your forehead.', 'Straighten your arms to press it back up. Keep your upper arms still.'],
-      anim: { a: { ...LIE, ua: 162, fa: 162 }, b: { ...LIE, ua: 162, fa: 55 }, eq: [...BENCH, { type: 'bb' }] },
+      anim: { cam: -1, a: { ...LIE, ua: 162, fa: 162, wE: 14, wH: 11 }, b: { ...LIE, ua: 162, fa: 55, wE: 14, wH: 11 }, eq: [...BENCH, { type: 'bb' }] },
     },
     {
       id: 'overhead-extension', name: 'Overhead Tricep Extension', groups: ['triceps'], equip: 'Dumbbell', sets: 3, reps: '10–12',
       cues: ['Hold one dumbbell overhead with both hands, arms straight.', 'Lower it behind your head by bending at the elbows.', 'Extend back up. Keep your elbows pointing forward, not flaring out.'],
-      anim: { a: { ...STAND, ua: 175, fa: 178 }, b: { ...STAND, ua: 175, fa: 335 }, eq: [{ type: 'db', at: 'hand' }] },
+      anim: { a: { ...STAND, ua: 175, fa: 178, wE: 12, wH: 4, wE2: 12, wH2: 4 }, b: { ...STAND, ua: 175, fa: 335, wE: 12, wH: 4, wE2: 12, wH2: 4 }, eq: [{ type: 'db', at: 'hand', g: 'v' }] },
     },
     {
       id: 'close-grip-bench', name: 'Close-Grip Bench Press', groups: ['triceps', 'chest'], equip: 'Barbell', sets: 3, reps: '6–10',
       cues: ['Grip the bar about shoulder-width apart.', 'Lower to your lower chest with elbows tucked close to your body.', 'Press up, focusing on straightening your arms.'],
-      anim: { a: { ...LIE, ua: 180, fa: 180 }, b: { ...LIE, ua: 295, fa: 172 }, eq: [...BENCH, { type: 'bb' }] },
+      anim: { cam: -1, a: { ...LIE, ua: 180, fa: 180, wE: 15, wH: 12 }, b: { ...LIE, ua: 295, fa: 172, wE: 21, wH: 12 }, eq: [...BENCH, { type: 'bb' }] },
     },
     {
       id: 'bench-dip', name: 'Bench Dip', groups: ['triceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '10–15',
       cues: ['Hands on the edge of a bench behind you, legs out in front.', 'Lower your hips by bending your elbows to about 90°.', 'Press back up until your arms are straight.'],
       anim: {
-        a: { hx: 100, hy: 138, t: 0, hand: [78, 138], ab: 'back', foot: [150, 182], lb: 'up' },
-        b: { hx: 102, hy: 160, t: 5, hand: [78, 138], ab: 'back', foot: [150, 182], lb: 'up' },
+        a: { hx: 100, hy: 138, t: 0, hand: [78, 138], ab: 'back', foot: [150, 182], lb: 'up', wE: 18, wH: 16 },
+        b: { hx: 102, hy: 160, t: 5, hand: [78, 138], ab: 'back', foot: [150, 182], lb: 'up', wE: 20, wH: 16 },
         eq: [{ type: 'line', x1: 52, y1: 141, x2: 84, y2: 141, w: 6 }, { type: 'line', x1: 58, y1: 141, x2: 58, y2: 182, w: 3 }],
       },
     },
     {
       id: 'kickback', name: 'Dumbbell Kickback', groups: ['triceps'], equip: 'Dumbbell', sets: 3, reps: '12–15',
       cues: ['Hinge forward, upper arm tight against your side and parallel to the floor.', 'Straighten your elbow to push the dumbbell back.', 'Squeeze at the top, then let your forearm swing back down slowly.'],
-      anim: { a: { ...HINGE, ua: -62, fa: 0 }, b: { ...HINGE, ua: -62, fa: -64 }, eq: [{ type: 'db' }] },
+      anim: { a: { ...HINGE, ua: -62, fa: 0, wE: 17, wH: 17 }, b: { ...HINGE, ua: -62, fa: -64, wE: 17, wH: 17 }, eq: [{ type: 'db', g: 'z' }] },
     },
 
     // ----------------------------------------------------------------- LEGS
@@ -711,8 +728,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'back-squat', name: 'Back Squat', groups: ['legs'], equip: 'Barbell', sets: 3, reps: '5–8',
       cues: ['Bar across your upper back, feet shoulder-width, toes slightly out.', 'Sit down and back, knees tracking over your toes, chest up.', 'Go to at least parallel, then drive up through your whole foot.'],
       anim: {
-        a: { hx: 100, hy: 118, t: 0, handT: [-5, 3], ab: 'down', foot: [102, 182], foot2: [98, 182] },
-        b: { hx: 76, hy: 150, t: 42, handT: [-5, 3], ab: 'down', foot: [102, 182], foot2: [98, 182] },
+        a: { hx: 100, hy: 118, t: 0, handT: [-5, 3], ab: 'down', foot: [102, 182], foot2: [98, 182], wE: 30, wH: 28, wK: 13, wF: 15 },
+        b: { hx: 76, hy: 150, t: 42, handT: [-5, 3], ab: 'down', foot: [102, 182], foot2: [98, 182], wE: 30, wH: 28, wK: 21, wF: 15 },
         eq: [{ type: 'bb' }], period: 3000,
       },
     },
@@ -720,22 +737,22 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'goblet-squat', name: 'Goblet Squat', groups: ['legs'], equip: 'Dumbbell', sets: 3, reps: '10–12',
       cues: ['Hold one dumbbell vertically against your chest.', 'Squat down between your heels, elbows brushing the inside of your knees.', 'Keep your chest tall and stand back up.'],
       anim: {
-        a: { hx: 100, hy: 118, t: 0, handT: [12, -14], ab: 'down', foot: [102, 182], foot2: [98, 182] },
-        b: { hx: 80, hy: 152, t: 25, handT: [12, -14], ab: 'down', foot: [102, 182], foot2: [98, 182] },
-        eq: [{ type: 'db', at: 'hand' }], period: 3000,
+        a: { hx: 100, hy: 118, t: 0, handT: [12, -14], ab: 'down', foot: [102, 182], foot2: [98, 182], wE: 15, wH: 5, wE2: 15, wH2: 5, wK: 13, wF: 15 },
+        b: { hx: 80, hy: 152, t: 25, handT: [12, -14], ab: 'down', foot: [102, 182], foot2: [98, 182], wE: 15, wH: 5, wE2: 15, wH2: 5, wK: 22, wF: 15 },
+        eq: [{ type: 'db', at: 'hand', g: 'up' }], period: 3000,
       },
     },
     {
       id: 'rdl', name: 'Romanian Deadlift', groups: ['legs', 'back'], equip: 'Barbell', sets: 3, reps: '8–10',
       cues: ['Stand holding the bar, knees softly bent.', 'Push your hips back and slide the bar down your thighs, back flat.', 'Stop when you feel a strong hamstring stretch, then drive your hips forward to stand.'],
-      anim: { a: { ...STAND }, b: { hx: 82, hy: 122, t: 75, ua: 0, fa: 0, foot: [102, 182], foot2: [98, 182] }, eq: [{ type: 'bb' }], period: 3000 },
+      anim: { a: { ...STAND, wE: 19, wH: 18 }, b: { hx: 82, hy: 122, t: 75, ua: 0, fa: 0, foot: [102, 182], foot2: [98, 182], wE: 19, wH: 18 }, eq: [{ type: 'bb' }], period: 3000 },
     },
     {
       id: 'leg-press', name: 'Leg Press', groups: ['legs'], equip: 'Machine', sets: 3, reps: '10–12',
       cues: ['Sit back with your feet shoulder-width on the platform.', 'Lower the sled until your knees reach about 90°, lower back flat on the pad.', 'Press back up without locking your knees hard.'],
       anim: {
-        a: { hx: 70, hy: 150, t: -45, hand: [80, 160], ab: 'down', foot: [98, 120], lb: 'up' },
-        b: { hx: 70, hy: 150, t: -45, hand: [80, 160], ab: 'down', foot: [122, 104], lb: 'up' },
+        a: { hx: 70, hy: 150, t: -45, hand: [80, 160], ab: 'down', foot: [98, 120], lb: 'up', wH: 24, wE: 22, wK: 18, wF: 14 },
+        b: { hx: 70, hy: 150, t: -45, hand: [80, 160], ab: 'down', foot: [122, 104], lb: 'up', wH: 24, wE: 22, wK: 15, wF: 14 },
         eq: [{ type: 'line', x1: 67, y1: 156, x2: 33, y2: 122, w: 6 }, { type: 'line', x1: 64, y1: 158, x2: 92, y2: 158, w: 6 }, { type: 'line', x1: 74, y1: 158, x2: 74, y2: 182, w: 3 }, { type: 'footplate' }],
       },
     },
@@ -743,25 +760,25 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'walking-lunge', name: 'Walking Lunge', groups: ['legs'], equip: 'Dumbbell', sets: 3, reps: '10/leg',
       cues: ['Hold dumbbells at your sides and take a long step forward.', 'Lower until your back knee nearly touches the floor, front shin vertical.', 'Push through your front heel and step through into the next lunge.'],
       anim: {
-        a: { hx: 95, hy: 124, t: 0, ua: 0, fa: 0, foot: [122, 182], foot2: [68, 182], lb2: 'down' },
-        b: { hx: 93, hy: 150, t: 5, ua: 0, fa: 0, foot: [122, 182], foot2: [68, 182], lb2: 'down' },
-        eq: [{ type: 'db' }],
+        a: { hx: 95, hy: 124, t: 0, ua: 0, fa: 0, foot: [122, 182], foot2: [68, 182], lb2: 'down', wE: 20, wH: 21, wK: 9, wF: 8 },
+        b: { hx: 93, hy: 150, t: 5, ua: 0, fa: 0, foot: [122, 182], foot2: [68, 182], lb2: 'down', wE: 20, wH: 21, wK: 9, wF: 8 },
+        eq: [{ type: 'db', g: 'z' }],
       },
     },
     {
       id: 'bulgarian-split-squat', name: 'Bulgarian Split Squat', groups: ['legs'], equip: 'Dumbbell', sets: 3, reps: '8/leg',
       cues: ['Rest the top of your back foot on a bench, front foot well forward.', 'Drop your back knee straight down toward the floor.', 'Drive through your front foot to stand. Finish one leg, then switch.'],
       anim: {
-        a: { hx: 92, hy: 122, t: 5, ua: 0, fa: 0, foot: [118, 182], foot2: [52, 147], lb2: 'down' },
-        b: { hx: 88, hy: 148, t: 10, ua: 0, fa: 0, foot: [118, 182], foot2: [52, 147], lb2: 'down' },
-        eq: [{ type: 'line', x1: 30, y1: 152, x2: 62, y2: 152, w: 6 }, { type: 'line', x1: 40, y1: 152, x2: 40, y2: 182, w: 3 }, { type: 'db' }],
+        a: { hx: 92, hy: 122, t: 5, ua: 0, fa: 0, foot: [118, 182], foot2: [52, 147], lb2: 'down', wE: 20, wH: 21, wK: 9, wF: 9 },
+        b: { hx: 88, hy: 148, t: 10, ua: 0, fa: 0, foot: [118, 182], foot2: [52, 147], lb2: 'down', wE: 20, wH: 21, wK: 9, wF: 9 },
+        eq: [{ type: 'line', x1: 30, y1: 152, x2: 62, y2: 152, w: 6 }, { type: 'line', x1: 40, y1: 152, x2: 40, y2: 182, w: 3 }, { type: 'db', g: 'z' }],
       },
     },
     {
       id: 'leg-extension', name: 'Leg Extension', groups: ['legs'], equip: 'Machine', sets: 3, reps: '12–15',
       cues: ['Sit with the pad on your lower shins, knees lined up with the machine\'s pivot.', 'Straighten your legs fully and squeeze your quads.', 'Lower slowly back to about 90°.'],
       anim: {
-        a: { hx: 85, hy: 140, t: -8, th: 90, sh: 5, hand: [90, 146], ab: 'down' }, b: { hx: 85, hy: 140, t: -8, th: 90, sh: 88, hand: [90, 146], ab: 'down' },
+        a: { hx: 85, hy: 140, t: -8, th: 90, sh: 5, hand: [90, 146], ab: 'down', wE: 22, wH: 23, wK: 10, wF: 9 }, b: { hx: 85, hy: 140, t: -8, th: 90, sh: 88, hand: [90, 146], ab: 'down', wE: 22, wH: 23, wK: 10, wF: 9 },
         eq: [{ type: 'line', x1: 66, y1: 147, x2: 115, y2: 147, w: 6 }, { type: 'line', x1: 72, y1: 147, x2: 66, y2: 96, w: 6 }, { type: 'line', x1: 88, y1: 147, x2: 88, y2: 182, w: 3 }, { type: 'roller' }],
       },
     },
@@ -769,7 +786,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'leg-curl', name: 'Seated Leg Curl', groups: ['legs'], equip: 'Machine', sets: 3, reps: '10–15',
       cues: ['Sit with the pad behind your lower calves and the thigh pad snug.', 'Pull your heels down and back as far as you can.', 'Return slowly to straight legs.'],
       anim: {
-        a: { hx: 85, hy: 140, t: -8, th: 90, sh: 88, hand: [90, 146], ab: 'down' }, b: { hx: 85, hy: 140, t: -8, th: 90, sh: -5, hand: [90, 146], ab: 'down' },
+        a: { hx: 85, hy: 140, t: -8, th: 90, sh: 88, hand: [90, 146], ab: 'down', wE: 22, wH: 23, wK: 10, wF: 9 }, b: { hx: 85, hy: 140, t: -8, th: 90, sh: -5, hand: [90, 146], ab: 'down', wE: 22, wH: 23, wK: 10, wF: 9 },
         eq: [{ type: 'line', x1: 66, y1: 147, x2: 115, y2: 147, w: 6 }, { type: 'line', x1: 72, y1: 147, x2: 66, y2: 96, w: 6 }, { type: 'line', x1: 88, y1: 147, x2: 88, y2: 182, w: 3 }, { type: 'roller' }],
       },
     },
@@ -777,8 +794,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'hip-thrust', name: 'Hip Thrust', groups: ['legs'], equip: 'Barbell', sets: 3, reps: '8–12',
       cues: ['Upper back against a bench, bar across your hips, feet flat.', 'Drive your hips up until your body is straight from shoulders to knees.', 'Squeeze your glutes at the top, then lower with control.'],
       anim: {
-        a: { hx: 95, hy: 168, sTo: [58, 142], hand: [95, 159], ab: 'up', foot: [128, 182], lb: 'up' },
-        b: { hx: 98, hy: 140, sTo: [58, 142], hand: [98, 131], ab: 'up', foot: [128, 182], lb: 'up' },
+        a: { hx: 95, hy: 168, sTo: [58, 142], hand: [95, 159], ab: 'up', foot: [128, 182], lb: 'up', wE: 24, wH: 26, wK: 16, wF: 15 },
+        b: { hx: 98, hy: 140, sTo: [58, 142], hand: [98, 131], ab: 'up', foot: [128, 182], lb: 'up', wE: 24, wH: 26, wK: 16, wF: 15 },
         eq: [{ type: 'line', x1: 18, y1: 150, x2: 60, y2: 150, w: 6 }, { type: 'line', x1: 30, y1: 150, x2: 30, y2: 182, w: 3 }, { type: 'bb', at: 'hip' }],
       },
     },
@@ -786,9 +803,9 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'calf-raise', name: 'Standing Calf Raise', groups: ['legs'], equip: 'Dumbbell', sets: 3, reps: '12–20',
       cues: ['Stand tall holding dumbbells, balls of your feet on the floor or a step.', 'Rise up as high as you can onto your toes.', 'Pause, then lower your heels slowly for a full stretch.'],
       anim: {
-        a: { ...STAND, toe: [111, 182], toe2: [107, 182] },
-        b: { ...STAND, hx: 101, hy: 109, foot: [103, 173], foot2: [99, 173], toe: [111, 182], toe2: [107, 182] },
-        eq: [{ type: 'db' }], period: 2200,
+        a: { ...STAND, toe: [111, 182], toe2: [107, 182], wE: 20, wH: 21 },
+        b: { ...STAND, hx: 101, hy: 109, foot: [103, 173], foot2: [99, 173], toe: [111, 182], toe2: [107, 182], wE: 20, wH: 21 },
+        eq: [{ type: 'db', g: 'z' }], period: 2200,
       },
     },
 
@@ -797,8 +814,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'plank', name: 'Plank', groups: ['core'], equip: 'Bodyweight', bw: true, timed: true, sets: 3, reps: '30–60 sec',
       cues: ['Forearms on the floor, elbows under your shoulders.', 'Lift your body into a straight line, squeezing your glutes and abs.', 'Breathe steadily and hold. Don\'t let your hips sag or pike up.'],
       anim: {
-        a: { hx: 100, hy: 166, t: 80, hand: [168, 181], ab: 'down', foot: [40, 175], toe: [44, 182] },
-        b: { hx: 100, hy: 163, t: 80, hand: [168, 181], ab: 'down', foot: [40, 175], toe: [44, 182] },
+        a: { hx: 100, hy: 166, t: 80, hand: [168, 181], ab: 'down', foot: [40, 175], toe: [44, 182], wE: 15, wH: 10, wK: 8, wF: 7 },
+        b: { hx: 100, hy: 163, t: 80, hand: [168, 181], ab: 'down', foot: [40, 175], toe: [44, 182], wE: 15, wH: 10, wK: 8, wF: 7 },
         period: 4000,
       },
     },
@@ -815,9 +832,9 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'hanging-leg-raise', name: 'Hanging Leg Raise', groups: ['core'], equip: 'Bodyweight', bw: true, sets: 3, reps: '8–15',
       cues: ['Hang from a pull-up bar with straight arms.', 'Raise your legs in front of you to hip height or higher without swinging.', 'Lower them slowly. Bend your knees to make it easier.'],
       anim: {
-        a: { hx: 100, hy: 118, t: 0, hand: [102, 22], ab: 'fwd', th: 0, sh: -20 },
-        b: { hx: 100, hy: 118, t: -5, hand: [102, 22], ab: 'fwd', th: 92, sh: 95 },
-        eq: [{ type: 'line', x1: 55, y1: 21, x2: 145, y2: 21, w: 4 }], period: 3000,
+        a: { hx: 100, hy: 118, t: 0, hand: [102, 22], ab: 'fwd', th: 0, sh: -20, wE: 28, wH: 32, wK: 7, wF: 6 },
+        b: { hx: 100, hy: 118, t: -5, hand: [102, 22], ab: 'fwd', th: 92, sh: 95, wE: 28, wH: 32, wK: 7, wF: 6 },
+        eq: [{ type: 'line', x1: 55, y1: 21, x2: 145, y2: 21, w: 4, x: true }], period: 3000,
       },
     },
     {
@@ -833,8 +850,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       id: 'cable-crunch', name: 'Cable Crunch', groups: ['core'], equip: 'Cable', sets: 3, reps: '12–15',
       cues: ['Kneel facing a high pulley, holding the rope beside your head.', 'Crunch down by curling your ribs toward your hips.', 'Return slowly. Your hips should stay still — the movement is in your spine.'],
       anim: {
-        a: { hx: 100, hy: 150, t: 15, handT: [8, 10], ab: 'down', th: 0, sh: -90, toe: [59, 182] },
-        b: { hx: 100, hy: 150, t: 75, handT: [8, 10], ab: 'down', th: 0, sh: -90, toe: [59, 182] },
+        a: { hx: 100, hy: 150, t: 15, handT: [8, 10], ab: 'down', th: 0, sh: -90, toe: [59, 182], wE: 14, wH: 6 },
+        b: { hx: 100, hy: 150, t: 75, handT: [8, 10], ab: 'down', th: 0, sh: -90, toe: [59, 182], wE: 14, wH: 6 },
         eq: [{ type: 'cable', px: 152, py: 16 }],
       },
     },
@@ -866,7 +883,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     {
       id: 'incline-bb-press', name: 'Incline Barbell Press', groups: ['chest', 'shoulders'], equip: 'Barbell', sets: 3, reps: '6–10',
       cues: ['Set the bench to 30–45° and unrack with hands just wider than shoulders.', 'Lower the bar to your upper chest, elbows slightly tucked.', 'Press back up over your shoulders without arching off the bench.'],
-      anim: { ...base('incline-db-press'), eq: swapEq(base('incline-db-press').eq, 'db', { type: 'bb' }) },
+      anim: { ...base('incline-db-press'), a: { ...base('incline-db-press').a, wE: 28, wH: 28 }, b: { ...base('incline-db-press').b, wE: 37, wH: 28 }, eq: swapEq(base('incline-db-press').eq, 'db', { type: 'bb' }) },
     },
     {
       id: 'pec-deck', name: 'Pec Deck Fly', groups: ['chest'], equip: 'Machine', sets: 3, reps: '10–15',
@@ -881,12 +898,12 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     {
       id: 'chin-up', name: 'Chin-Up', groups: ['back', 'biceps'], equip: 'Bodyweight', bw: true, sets: 3, reps: '5–10',
       cues: ['Hang from the bar with palms facing you, hands shoulder-width apart.', 'Pull your chest toward the bar until your chin clears it.', 'Lower all the way to a full hang under control.'],
-      anim: base('pull-up'),
+      anim: { ...base('pull-up'), a: { ...base('pull-up').a, wE: 20, wH: 17 }, b: { ...base('pull-up').b, wE: 24, wH: 17 } },
     },
     {
       id: 'machine-shoulder-press', name: 'Machine Shoulder Press', groups: ['shoulders', 'triceps'], equip: 'Machine', sets: 3, reps: '8–12',
       cues: ['Set the seat so the handles start at about shoulder height.', 'Press straight up until your arms are nearly locked.', 'Lower slowly back to shoulder height.'],
-      anim: { a: { ...SEAT, t: -6, ua: 25, fa: 175 }, b: { ...SEAT, t: -6, ua: 178, fa: 179 }, eq: [...SEAT_EQ, { type: 'line', x1: 78, y1: 152, x2: 73, y2: 100, w: 6 }, { type: 'grip' }] },
+      anim: { a: { ...SEAT, t: -6, ua: 25, fa: 175, wE: 30, wH: 26 }, b: { ...SEAT, t: -6, ua: 178, fa: 179, wE: 25, wH: 25 }, eq: [...SEAT_EQ, { type: 'line', x1: 78, y1: 152, x2: 73, y2: 100, w: 6 }, { type: 'grip' }] },
     },
     {
       id: 'cable-lateral-raise', name: 'Cable Lateral Raise', groups: ['shoulders'], equip: 'Cable', sets: 3, reps: '12–15',
@@ -896,7 +913,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     {
       id: 'diamond-push-up', name: 'Diamond Push-Up', groups: ['triceps', 'chest'], equip: 'Bodyweight', bw: true, sets: 3, reps: '8–15',
       cues: ['Hands together under your chest, thumbs and index fingers touching.', 'Lower your chest toward your hands, elbows close to your sides.', 'Push back up to straight arms with your body in one line.'],
-      anim: base('push-up'),
+      anim: { ...base('push-up'), a: { ...base('push-up').a, wH: 4, wE: 18 }, b: { ...base('push-up').b, wH: 4, wE: 24 } },
     },
     {
       id: 'cable-overhead-extension', name: 'Cable Overhead Extension', groups: ['triceps'], equip: 'Cable', sets: 3, reps: '10–15',
@@ -906,29 +923,29 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     {
       id: 'db-skull-crusher', name: 'Dumbbell Skull Crusher', groups: ['triceps'], equip: 'Dumbbell', sets: 3, reps: '8–12',
       cues: ['Lie on a bench holding dumbbells over your chest, palms facing in.', 'Bend only at the elbows to lower the weights beside your head.', 'Straighten your arms back up without letting the elbows flare.'],
-      anim: { ...base('skull-crusher'), eq: swapEq(base('skull-crusher').eq, 'bb', { type: 'db' }) },
+      anim: { ...base('skull-crusher'), eq: swapEq(base('skull-crusher').eq, 'bb', { type: 'db', g: 'z' }) },
     },
     {
       id: 'db-rdl', name: 'Dumbbell Romanian Deadlift', groups: ['legs', 'back'], equip: 'Dumbbell', sets: 3, reps: '8–12',
       cues: ['Stand tall with dumbbells in front of your thighs, knees slightly bent.', 'Push your hips back and slide the weights down your legs, back flat.', 'Stop at a strong hamstring stretch, then drive your hips forward to stand.'],
-      anim: { ...base('rdl'), eq: [{ type: 'db' }] },
+      anim: { ...base('rdl'), eq: [{ type: 'db', g: 'x' }] },
     },
     {
       id: 'db-bent-row', name: 'Dumbbell Bent-Over Row', groups: ['back'], equip: 'Dumbbell', sets: 3, reps: '8–12',
       cues: ['Hold a dumbbell in each hand and hinge forward until your torso is close to parallel, back flat.', 'Row both dumbbells to your lower ribs, squeezing your shoulder blades together.', 'Lower to straight arms without letting your back round.'],
-      anim: { ...base('barbell-row'), eq: [{ type: 'db' }] },
+      anim: { ...base('barbell-row'), a: { ...base('barbell-row').a, wE: 19, wH: 19 }, b: { ...base('barbell-row').b, wE: 23, wH: 19 }, eq: [{ type: 'db', g: 'z' }] },
     },
     {
       id: 'db-pullover', name: 'Dumbbell Pullover', groups: ['chest', 'back'], equip: 'Dumbbell', sets: 3, reps: '10–12',
       cues: ['Lie on the bench holding one dumbbell over your chest with both hands.', 'Keep a slight bend in your elbows and lower the weight back behind your head until your arms are in line with your body.', 'Pull it back over your chest using your chest and lats, not your elbows.'],
-      anim: { a: { ...LIE, ua: 178, fa: 172 }, b: { ...LIE, ua: 98, fa: 92 }, eq: [...BENCH, { type: 'db', at: 'hand' }] },
+      anim: { cam: -1, a: { ...LIE, ua: 178, fa: 172, wE: 11, wH: 3, wE2: 11, wH2: 3 }, b: { ...LIE, ua: 98, fa: 92, wE: 11, wH: 3, wE2: 11, wH2: 3 }, eq: [...BENCH, { type: 'db', at: 'hand', g: 'v' }] },
     },
     {
       id: 'glute-bridge', name: 'Glute Bridge', groups: ['legs'], equip: 'Bodyweight', bw: true, sets: 3, reps: '12–20',
       cues: ['Lie on your back, knees bent and feet flat about hip-width apart.', 'Squeeze your glutes to lift your hips until your body is straight from knees to shoulders.', 'Pause at the top, then lower slowly.'],
       anim: {
-        a: { hx: 95, hy: 175, sTo: [52, 176], hand: [97, 180], ab: 'up', foot: [128, 182], lb: 'up' },
-        b: { hx: 98, hy: 152, sTo: [52, 176], hand: [97, 180], ab: 'up', foot: [128, 182], lb: 'up' },
+        a: { hx: 95, hy: 175, sTo: [52, 176], hand: [97, 180], ab: 'up', foot: [128, 182], lb: 'up', wE: 22, wH: 26, wK: 14, wF: 13 },
+        b: { hx: 98, hy: 152, sTo: [52, 176], hand: [97, 180], ab: 'up', foot: [128, 182], lb: 'up', wE: 22, wH: 26, wK: 14, wF: 13 },
       },
     },
     {
@@ -1154,6 +1171,18 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
  *
  * Front view (view: 'front'): hx, hy, ua, fa, th, sh are "outward" angles, shr = shrug,
  *   tf = torso length scale (< 1 = bent over toward the viewer).
+ *
+ * Turned 90° (tap a diagram): side poses are projected to a front view using how far
+ *   each joint is from the body's midline: wE elbow, wH hand, wK knee, wF foot (+ 2 for
+ *   the far side). Lifts done lying back (cam: -1 on the anim) are seen from the feet.
+ *   Front poses become a side view using how far forward the joints are: dE, dH, dK, dF
+ *   (default: elbows and hands a little forward of the shoulder, as in real raises).
+ *
+ * Dumbbells (eq type 'db') take g = which way the handle points:
+ *   'x'  across the body (palms down/up: presses, curls)   - end-on from the side
+ *   'z'  front to back   (palms facing in: hammer, at sides) - end-on from the front
+ *   'v'  along the forearm (one dumbbell held by both hands overhead)
+ *   'up' upright (goblet hold)
  */
 (function () {
   const L = { torso: 46, neck: 6, head: 9, ua: 26, fa: 24, th: 32, sh: 32 };
@@ -1257,6 +1286,64 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     return { view: 'front', hip, neck, head, sL, sR, hL, hR, arm: arm(sL, -1), arm2: arm(sR, 1), leg: leg(hL, -1), leg2: leg(hR, 1) };
   }
 
+  // ---- the second view -------------------------------------------------
+  function sideToFront(s, p, cam) {
+    const g = (k, sfx, d) => p[k + sfx] ?? p[k] ?? d;
+    const X = (pt, w, side) => [100 + side * w, pt[1]];
+    const D = (pt) => cam * (pt[0] - 100);
+    const avg = (...pts) => pts.reduce((t, q) => t + D(q), 0) / pts.length;
+    const arm = (a, sfx, side) => [X(a[0], g('wE', sfx, 19), side), X(a[1], g('wH', sfx, 19), side)];
+    const leg = (l, sfx, side) => {
+      const f = X(l[1], g('wF', sfx, 10), side);
+      return [X(l[0], g('wK', sfx, 10), side), f, [f[0] + side * 6, f[1]]];
+    };
+    return {
+      view: 'front', alt: true,
+      hip: [100, s.hip[1]], neck: [100, s.sh[1]], head: [100, s.head[1]],
+      sL: [85, s.sh[1]], sR: [115, s.sh[1]], hL: [92, s.hip[1]], hR: [108, s.hip[1]],
+      arm: arm(s.arm, '', -1), arm2: arm(s.arm2, '2', 1), leg: leg(s.leg, '', -1), leg2: leg(s.leg2, '2', 1),
+      depth: {
+        torso: avg(s.hip, s.sh), head: avg(s.head),
+        arm: avg(s.sh, ...s.arm), arm2: avg(s.sh, ...s.arm2), leg: avg(s.hip, ...s.leg.slice(0, 2)), leg2: avg(s.hip, ...s.leg2.slice(0, 2)),
+      },
+    };
+  }
+
+  function frontToSide(s, p) {
+    const tf = p.tf ?? 1;
+    const lean = L.torso * Math.sqrt(Math.max(0, 1 - tf * tf));
+    const shX = 100 + lean;
+    const g = (k, sfx, d) => p[k + sfx] ?? p[k] ?? d;
+    const arm = ([e, h], sp, sfx) => {
+      const dE = g('dE', sfx, Math.abs(e[0] - sp[0]) * 0.3);
+      const dH = g('dH', sfx, Math.max(dE, Math.abs(h[0] - sp[0]) * 0.3));
+      return [[shX + dE, e[1]], [shX + dH, h[1]]];
+    };
+    const leg = ([k, f], sfx) => {
+      const ft = [100 + g('dF', sfx, 0), f[1]];
+      return [[100 + g('dK', sfx, 0), k[1]], ft, [ft[0] + 9, ft[1]]];
+    };
+    return {
+      view: 'side', alt: true,
+      hip: [100, s.hip[1]], sh: [shX, s.sL[1]], head: [shX + lean * 0.33, s.head[1]],
+      arm: arm(s.arm, s.sL, ''), arm2: arm(s.arm2, s.sR, '2'), leg: leg(s.leg, ''), leg2: leg(s.leg2, '2'),
+    };
+  }
+
+  // Equipment lines (benches, seats, bars) seen from the front: a slab becomes a
+  // block the width of a bench, a post stays a post, a bar the person holds across
+  // (x: true) spans the width, and other bars (dip bars) are seen end-on.
+  function staticEquipFront(eq) {
+    return (eq || []).filter((e) => e.type === 'line').map((e) => {
+      const w = e.w || 4, y0 = Math.min(e.y1, e.y2), y1 = Math.max(e.y1, e.y2);
+      const flat = Math.abs(e.y2 - e.y1) < 4;
+      if (w >= 5) return `<rect x="86" y="${f1(y0 - w / 2)}" width="28" height="${f1(y1 - y0 + w)}" rx="2" class="f-eq-fill"/>`;
+      if (!flat) return ln([100, y0], [100, y1], 'f-eq', w);
+      if (e.x) return ln([52, e.y1], [148, e.y1], 'f-eq', w);
+      return `<circle cx="76" cy="${e.y1}" r="3" class="f-eq-fill"/><circle cx="124" cy="${e.y1}" r="3" class="f-eq-fill"/>`;
+    }).join('');
+  }
+
   const f1 = (n) => Math.round(n * 10) / 10;
   const ln = (a, b, cls, w) =>
     `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" class="${cls}"${w ? ` stroke-width="${w}"` : ''}/>`;
@@ -1278,21 +1365,38 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     }
   }
 
+  // A dumbbell at hand h (elbow el). Seen end-on it's a round plate; otherwise the
+  // handle is drawn across the forearm, along it, or upright depending on the grip.
+  function dumbbell(s, [el, h], grip) {
+    const end = (grip === 'x' && s.view === 'side') || (grip === 'z' && s.view === 'front');
+    if (end) return `<circle cx="${f1(h[0])}" cy="${f1(h[1])}" r="7" class="f-wt"/><circle cx="${f1(h[0])}" cy="${f1(h[1])}" r="2.2" class="f-hub"/>`;
+    const v = [h[0] - el[0], h[1] - el[1]];
+    const fa = Math.atan2(v[1], v[0]) / R;
+    const short = Math.hypot(v[0], v[1]) < 7;
+    const ang = grip === 'up' ? 90 : grip === 'v' ? (short ? 90 : fa) : (short ? 0 : fa + 90);
+    return `<g transform="translate(${f1(h[0])} ${f1(h[1])}) rotate(${f1(ang)})">` +
+      '<rect x="-7" y="-2" width="14" height="4" rx="1" class="f-wt"/>' +
+      '<rect x="-10" y="-5" width="5" height="10" rx="1.5" class="f-wt"/><rect x="5" y="-5" width="5" height="10" rx="1.5" class="f-wt"/></g>';
+  }
+  const armsAt = (s, at) => (at === 'hand' ? [s.arm] : at === 'hand2' ? [s.arm2] : [s.arm, s.arm2]);
+
   function dynEquip(s, eq, under) {
     let out = '';
     (eq || []).forEach((e) => {
       if (e.type === 'cable' && under) {
-        const tgt = points(s, e.at || 'hand')[0];
-        out += ln([e.px, e.py], tgt, 'f-cable', 1.5);
-        out += `<circle cx="${e.px}" cy="${e.py}" r="5" class="f-pulley"/>`;
+        // turned 90°, the pulley is seen straight on (in front of / beside the body)
+        const P = !s.alt ? [e.px, e.py] : s.view === 'front' ? [100, e.py] : [96, e.py];
+        const tgts = s.alt && s.view === 'front' && !e.at ? points(s) : points(s, e.at || 'hand').slice(0, 1);
+        tgts.forEach((t) => { out += ln(P, t, 'f-cable', 1.5); });
+        out += `<circle cx="${P[0]}" cy="${P[1]}" r="5" class="f-pulley"/>`;
       }
       if (under) return;
       if (e.type === 'db') {
-        points(s, e.at).forEach(([x, y]) => {
-          out += `<rect x="${f1(x - 7)}" y="${f1(y - 2)}" width="14" height="4" rx="1" class="f-wt"/>`;
-          out += `<rect x="${f1(x - 10)}" y="${f1(y - 5)}" width="5" height="10" rx="1.5" class="f-wt"/>`;
-          out += `<rect x="${f1(x + 5)}" y="${f1(y - 5)}" width="5" height="10" rx="1.5" class="f-wt"/>`;
-        });
+        armsAt(s, e.at).forEach((a) => { out += dumbbell(s, a, e.g || 'x'); });
+      } else if (e.type === 'bb' && e.at === 'hip' && s.view === 'front') {
+        const y = s.hip[1] - 9;
+        out += ln([55, y], [145, y], 'f-bar', 3);
+        out += `<rect x="50" y="${f1(y - 11)}" width="6" height="22" rx="1.5" class="f-wt"/><rect x="144" y="${f1(y - 11)}" width="6" height="22" rx="1.5" class="f-wt"/>`;
       } else if (e.type === 'bb') {
         if (s.view === 'front') {
           const a = s.arm[1], b = s.arm2[1];
@@ -1310,6 +1414,12 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
         points(s, e.type === 'cable' ? e.at || 'hand' : e.at).forEach(([x, y]) => {
           out += `<circle cx="${f1(x)}" cy="${f1(y)}" r="3.5" class="f-wt"/>`;
         });
+      } else if (e.type === 'roller' && s.view === 'front') {
+        const y = (s.leg[1][1] + s.leg2[1][1]) / 2 - 2;
+        out += `<rect x="${f1(s.leg[1][0] - 8)}" y="${f1(y - 5)}" width="${f1(s.leg2[1][0] - s.leg[1][0] + 16)}" height="10" rx="5" class="f-plate"/>`;
+      } else if (e.type === 'footplate' && s.view === 'front') {
+        const y = (s.leg[1][1] + s.leg2[1][1]) / 2 + 4;
+        out += ln([s.leg[1][0] - 16, y], [s.leg2[1][0] + 16, y], 'f-eq', 5);
       } else if (e.type === 'roller') {
         const [x, y] = s.leg[1];
         out += `<circle cx="${f1(x)}" cy="${f1(y - 2)}" r="6" class="f-plate"/>`;
@@ -1347,21 +1457,22 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
   }
 
   function drawFront(s, eq) {
-    const legs = [s.leg, s.leg2].map(([k, f, t], i) => {
+    // parts are painted far to near (a projected view knows each part's depth;
+    // an authored front view keeps legs, torso, head, arms)
+    const dp = s.depth || {};
+    const parts = [];
+    [s.leg, s.leg2].forEach(([k, f, t], i) => {
       const h = i ? s.hR : s.hL;
-      return ln(h, k, 'f-limb') + ln(k, f, 'f-limb') + ln(f, t, 'f-limb', 4);
-    }).join('');
-    const arms = [s.arm, s.arm2].map(([e, h], i) => {
-      const sp = i ? s.sR : s.sL;
-      return ln(sp, e, 'f-limb') + ln(e, h, 'f-limb');
-    }).join('');
+      parts.push([dp[i ? 'leg2' : 'leg'] || 0, ln(h, k, 'f-limb') + ln(k, f, 'f-limb') + ln(f, t, 'f-limb', 4)]);
+    });
     const mid = [(s.sL[0] + s.sR[0]) / 2, (s.sL[1] + s.sR[1]) / 2];
-    return (
-      dynEquip(s, eq, true) + legs +
-      ln(s.hL, s.hR, 'f-body', 8) + ln(mid, s.hip, 'f-body', 9) + ln(s.sL, s.sR, 'f-body', 8) +
-      `<circle cx="${f1(s.head[0])}" cy="${f1(s.head[1])}" r="${L.head}" class="f-head"/>` +
-      arms + dynEquip(s, eq, false)
-    );
+    parts.push([dp.torso || 0, ln(s.hL, s.hR, 'f-body', 8) + ln(mid, s.hip, 'f-body', 9) + ln(s.sL, s.sR, 'f-body', 8)]);
+    parts.push([dp.head || 0, `<circle cx="${f1(s.head[0])}" cy="${f1(s.head[1])}" r="${L.head}" class="f-head"/>`]);
+    [s.arm, s.arm2].forEach(([e, h], i) => {
+      const sp = i ? s.sR : s.sL;
+      parts.push([dp[i ? 'arm2' : 'arm'] || 0, ln(sp, e, 'f-limb') + ln(e, h, 'f-limb')]);
+    });
+    return dynEquip(s, eq, true) + parts.map((x, i) => [x[0], i, x[1]]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]).join('') + dynEquip(s, eq, false);
   }
 
   const GENERIC = { a: { hx: 100, hy: 118, ua: 4, fa: 4, foot: [100, 182], foot2: [96, 182] }, b: { hx: 100, hy: 118, ua: 10, fa: 30, foot: [100, 182], foot2: [96, 182] } };
@@ -1376,11 +1487,14 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     return 0;
   }
 
-  function frame(anim, u) {
+  function frame(anim, u, alt) {
     const p = lerpPose(anim.a, anim.b, u);
-    const s = anim.view === 'front' ? solveFront(p) : solveSide(p);
-    return anim.view === 'front' ? drawFront(s, anim.eq) : drawSide(s, anim.eq);
+    const front = anim.view === 'front';
+    const s = front ? solveFront(p) : solveSide(p);
+    if (!alt) return front ? drawFront(s, anim.eq) : drawSide(s, anim.eq);
+    return front ? drawSide(frontToSide(s, p), anim.eq) : drawFront(sideToFront(s, p, anim.cam || 1), anim.eq);
   }
+  const viewName = (anim, alt) => ((anim.view === 'front') !== !!alt ? 'Front' : 'Side');
 
   const live = new Set();
   let raf = null;
@@ -1391,28 +1505,33 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       if (!f.svg.isConnected) { live.delete(f); return; }
       if (now - f.last < 33) return; // ~30fps is plenty
       f.last = now;
-      f.layer.innerHTML = frame(f.anim, phase(now + f.offset, f.anim.period || 2800));
+      f.layer.innerHTML = frame(f.anim, phase(now + f.offset, f.anim.period || 2800), f.alt);
     });
     raf = live.size ? requestAnimationFrame(tick) : null;
   }
 
+  // opts: static, u (pose for static), offset (animation phase), alt (turned 90°),
+  // tag (show which view it is, for diagrams you can tap to turn)
   function mount(el, ex, opts = {}) {
     const anim = (ex && ex.anim) || GENERIC;
+    const alt = !!opts.alt;
+    const sideAlt = alt && anim.view !== 'front';
     el.innerHTML =
-      `<svg viewBox="6 6 188 188" class="fig" role="img" aria-label="${(ex && ex.name) || 'Exercise'} movement diagram">` +
+      `<svg viewBox="6 6 188 188" class="fig" role="img" aria-label="${(ex && ex.name) || 'Exercise'} movement diagram, ${viewName(anim, alt).toLowerCase()} view">` +
       `<line x1="8" y1="${FLOOR + 3}" x2="192" y2="${FLOOR + 3}" class="f-floor"/>` +
-      staticEquip(anim.eq) + `<g class="f-layer"></g></svg>`;
+      (sideAlt ? staticEquipFront(anim.eq) : alt ? '' : staticEquip(anim.eq)) + `<g class="f-layer"></g></svg>` +
+      (opts.tag ? `<span class="fig-tag" aria-hidden="true">${viewName(anim, alt)} ⟲</span>` : '');
     const svg = el.firstChild;
     const layer = svg.querySelector('.f-layer');
     if (opts.static || reduce || !ex || !ex.anim) {
-      layer.innerHTML = frame(anim, opts.u ?? (reduce ? 1 : 0));
+      layer.innerHTML = frame(anim, opts.u ?? (reduce ? 1 : 0), alt);
       if (reduce && ex && ex.anim && !opts.static) {
         // show start position as a ghost so the motion is still readable
-        layer.innerHTML = `<g class="f-ghost">${frame(anim, 0)}</g>` + layer.innerHTML;
+        layer.innerHTML = `<g class="f-ghost">${frame(anim, 0, alt)}</g>` + layer.innerHTML;
       }
       return;
     }
-    live.add({ svg, layer, anim, last: 0, offset: opts.offset || 0 });
+    live.add({ svg, layer, anim, alt, last: 0, offset: opts.offset || 0 });
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
@@ -1657,6 +1776,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
   const save = () => Store.save(D);
 
   const ui = {
+    figAlt: {},           // lifts whose diagram is turned 90°
     tab: 'train',
     step: 'groups',       // groups | plan
     groups: [],
@@ -1666,6 +1786,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     metric: 'e1rm',
     open: {},             // expanded history items
     rest: null,           // { end, total }
+    hold: null,           // plank stopwatch: { wo, idx, set, start }
     summary: null,
     justFinishedLift: false,
   };
@@ -2287,9 +2408,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     app.innerHTML = html;
     document.body.classList.toggle('has-sheet', !!(ui.picker || ui.explain));
 
-    app.querySelectorAll('[data-fig]').forEach((el, i) => {
-      Figure.mount(el, getEx(el.dataset.fig), { static: el.dataset.static === '1', u: 1, offset: i * 450 });
-    });
+    app.querySelectorAll('[data-fig]').forEach((el, i) => mountFig(el, i));
     if (ui.tab === 'progress') drawCharts();
     tickClock();
     if (ui.justFinishedLift) {
@@ -2297,6 +2416,18 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       const n = document.getElementById('next-cta');
       if (n) n.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+  }
+
+  // Diagrams you can tap to turn 90° (side <-> front). The choice sticks per lift.
+  function mountFig(el, i = 0) {
+    const id = el.dataset.fig, still = el.dataset.static === '1';
+    if (!still) {
+      el.dataset.act = 'flip-fig';
+      el.setAttribute('role', 'button');
+      el.tabIndex = 0;
+      el.title = 'Tap to turn the diagram 90°';
+    }
+    Figure.mount(el, getEx(id), { static: still, u: 1, offset: i * 450, alt: !!ui.figAlt[id], tag: !still });
   }
 
   function groupsView() {
@@ -2355,6 +2486,32 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       ${ui.plan.length ? `<p class="time-est"><span aria-hidden="true">⏱</span> About <b>${durText(planSecs(ui.plan))}</b>, counting ${D.rest ? `${D.rest < 60 ? `${D.rest} s` : `${(D.rest / 60).toString().replace('.5', ':30')} min`} rest between sets` : 'about 90 s rest between sets'} and warm-up sets.</p>` : ''}
       ${coverageCard(ui.plan, ui.groups)}
       <div class="cta-bar"><button class="btn primary block" data-act="start" ${ui.plan.length ? '' : 'disabled'}>Start workout · ${ui.plan.length} lifts${ui.plan.length ? ` · ~${durText(planSecs(ui.plan))}` : ''}</button></div>`;
+  }
+
+  // Stopwatch for timed holds (plank): counts up from Start; Stop logs the seconds
+  // as the set's time and completes it.
+  function holdCard(it) {
+    const A = D.active;
+    const i = it.sets.findIndex((x) => !x.done);
+    if (i < 0) return '';
+    const running = ui.hold && ui.hold.wo === A.startedAt && ui.hold.idx === A.idx;
+    const set = running ? ui.hold.set : i;
+    return `<div class="hold${running ? ' on' : ''}">
+      <div class="hold-txt"><span>Set ${set + 1}${running ? ' · holding' : ''}</span><b id="hold-t">${running ? fmtUp(Date.now() - ui.hold.start) : '0:00'}</b>
+        <span class="muted">Aim for ${esc(getEx(it.exId).reps || '30–60 sec')}</span></div>
+      ${running
+        ? `<div class="hold-btns"><button class="btn primary" data-act="hold-stop">■ Stop &amp; log</button><button class="link" data-act="hold-cancel">Cancel</button></div>`
+        : `<button class="btn primary" data-act="hold-start">▶ Start timer</button>`}
+    </div>`;
+  }
+  const fmtUp = (ms) => { const t = Math.floor(ms / 1000); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
+  // keep the screen on while holding (you're on the floor, not tapping the phone)
+  let wakeLock = null;
+  function holdWake(on) {
+    try {
+      if (on && navigator.wakeLock) navigator.wakeLock.request('screen').then((l) => { wakeLock = l; }).catch(() => {});
+      else if (!on && wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+    } catch (err) { /* not supported */ }
   }
 
   function workoutView() {
@@ -2433,6 +2590,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
           <button class="link" data-act="add-set">+ Add set</button>
           ${it.sets.length > 1 ? `<button class="link" data-act="remove-set">− Remove set</button>` : ''}
         </div>
+        ${ex.timed ? holdCard(it) : ''}
         ${ui.rest ? `<div class="rest" id="rest"><span>Rest</span><b id="rest-t">0:00</b><div class="rest-bar"><i id="rest-bar"></i></div><button class="link" data-act="rest-add">+30s</button><button class="link" data-act="rest-skip">Skip</button></div>` : ''}
       </section>
 
@@ -2666,6 +2824,12 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 
   const actions = {
     tab(b) { ui.tab = b.dataset.tab; if (ui.tab === 'train' && ui.summary && b.closest('#tabs')) ui.summary = null; ui.picker = null; render(); window.scrollTo(0, 0); },
+    'flip-fig'(b) {
+      const id = b.dataset.fig;
+      ui.figAlt[id] = !ui.figAlt[id];
+      // turn every diagram of this lift on screen, without re-rendering the page
+      app.querySelectorAll(`[data-fig="${CSS.escape(id)}"]`).forEach((el, i) => mountFig(el, i));
+    },
     'toggle-group'(b) {
       const id = b.dataset.id;
       const i = ui.groups.indexOf(id);
@@ -2709,6 +2873,29 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       save(); render(); window.scrollTo(0, 0);
     },
     goto(b) { D.active.idx = +b.dataset.i; ui.rest = null; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+    'hold-start'() {
+      const it = currentItem();
+      const i = it.sets.findIndex((x) => !x.done);
+      if (i < 0) return;
+      ui.hold = { wo: D.active.startedAt, idx: D.active.idx, set: i, start: Date.now() };
+      ui.rest = null;
+      holdWake(true);
+      render();
+    },
+    'hold-stop'() {
+      const h = ui.hold;
+      if (!h) return;
+      const secs = Math.max(1, Math.round((Date.now() - h.start) / 1000));
+      ui.hold = null;
+      holdWake(false);
+      const it = D.active && h.wo === D.active.startedAt ? D.active.items[h.idx] : null;
+      if (!it || !it.sets[h.set] || it.sets[h.set].done) { render(); return; }
+      it.sets[h.set].r = String(secs);
+      save(); render();
+      const btn = app.querySelector(`.check[data-s="${h.set}"]`);
+      if (btn) actions['toggle-set'](btn);
+    },
+    'hold-cancel'() { ui.hold = null; holdWake(false); render(); },
     'toggle-set'(b) {
       const it = currentItem();
       const i = +b.dataset.s;
@@ -2866,6 +3053,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 
   // ------------------------------------------------------------- live clock
   function tickClock() {
+    if (ui.hold) { const h = document.getElementById('hold-t'); if (h) h.textContent = fmtUp(Date.now() - ui.hold.start); }
     const el = document.querySelector('[data-elapsed]');
     if (el && D.active) {
       const m = Math.floor((Date.now() - D.active.startedAt) / 60000);
@@ -2912,6 +3100,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     if (ui.explain) { ui.explain = null; render(); } else if (ui.picker) { ui.picker = null; render(); }
   });
   app.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset && e.target.dataset.act === 'flip-fig') { e.preventDefault(); e.target.click(); return; }
     // Enter in a reps box completes the set
     if (e.key === 'Enter' && e.target.dataset && e.target.dataset.k) {
       e.preventDefault();
