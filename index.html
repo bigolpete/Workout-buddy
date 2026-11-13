@@ -475,6 +475,13 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
 .cv-sets.light, .cv-sets.lots { background: var(--accent-soft); color: var(--accent); }
 .time-est { margin: 12px 2px 0; font-size: .88rem; color: var(--ink-2); }
 .time-est b { color: var(--ink); }
+.switch-row span small { display: block; font-size: .78rem; font-weight: 400; margin-top: 2px; }
+.switch { appearance: none; -webkit-appearance: none; width: 44px; height: 26px; flex: none; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; transition: background .15s; }
+.switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink-2); transition: transform .15s, background .15s; }
+.switch:checked { background: var(--accent); }
+.switch:checked::after { transform: translateX(18px); background: #fff; }
+.switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.switch:disabled { opacity: .4; }
 </style>
 </head>
 <body>
@@ -2586,7 +2593,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       if (D.active !== A || A.items[idx] !== newIt || newIt.sets.some((x) => x.done)) { toast('Can\'t undo: sets already logged'); return; }
       A.items[idx] = oldItem;
       A.idx = idx;
-      ui.rest = null;
       toast(`Back to ${getEx(oldItem.exId).name}`);
       save(); render();
     });
@@ -2686,6 +2692,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     app.querySelectorAll('[data-fig]').forEach((el, i) => mountFig(el, i));
     if (ui.tab === 'progress') drawCharts();
     tickClock();
+    syncWake();
     if (ui.justFinishedLift) {
       ui.justFinishedLift = false;
       const n = document.getElementById('next-cta');
@@ -2782,14 +2789,34 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     </div>`;
   }
   const fmtUp = (ms) => { const t = Math.floor(ms / 1000); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; };
-  // keep the screen on while holding (you're on the floor, not tapping the phone)
-  let wakeLock = null;
-  function holdWake(on) {
-    try {
-      if (on && navigator.wakeLock) navigator.wakeLock.request('screen').then((l) => { wakeLock = l; }).catch(() => {});
-      else if (!on && wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
-    } catch (err) { /* not supported */ }
+  // ---- keeping the screen on ----------------------------------------------
+  // Uses the browser's Screen Wake Lock. The screen stays on:
+  //   - for the whole workout (Start until Finish / Discard), unless switched off in Settings
+  //   - while the plank stopwatch or the ab gauntlet is running, whatever the setting
+  // There is only ever one lock. The browser drops it when you switch apps or lock
+  // the phone, so it's asked for again when you come back. syncWake() runs after
+  // every render and whenever the app becomes visible.
+  let wakeLock = null, wakePending = false;
+  const wantWake = () => !!D.active && (D.keepAwake !== false || !!ui.hold || (!!ui.gRun && !ui.gRun.pausedAt));
+  function syncWake() {
+    if (!('wakeLock' in navigator)) return;
+    const want = wantWake() && document.visibilityState === 'visible';
+    if (want && !wakeLock && !wakePending) {
+      wakePending = true;
+      navigator.wakeLock.request('screen').then((l) => {
+        wakePending = false;
+        if (!wantWake()) { l.release().catch(() => {}); return; }
+        wakeLock = l;
+        l.addEventListener('release', () => { if (wakeLock === l) wakeLock = null; });
+      }).catch(() => { wakePending = false; });
+    } else if (!want && wakeLock) {
+      const l = wakeLock;
+      wakeLock = null;
+      l.release().catch(() => {});
+    }
   }
+  const holdWake = () => syncWake(); // timers call this when they start/stop
+  document.addEventListener('visibilitychange', syncWake);
 
   function workoutView() {
     const A = D.active;
@@ -3026,6 +3053,8 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
           <select id="set-units"><option value="lb" ${D.units === 'lb' ? 'selected' : ''}>Pounds (lb)</option><option value="kg" ${D.units === 'kg' ? 'selected' : ''}>Kilograms (kg)</option></select></label>
         <label class="field row"><span>Rest timer</span>
           <select id="set-rest">${[0, 45, 60, 90, 120, 180].map((n) => `<option value="${n}" ${D.rest === n ? 'selected' : ''}>${n ? (n < 60 ? `${n} sec` : `${n / 60} min`).replace('1.5 min', '1:30') : 'Off'}</option>`).join('')}</select></label>
+        <label class="field row switch-row"><span>Keep screen on during workouts<small class="muted">${'wakeLock' in navigator ? 'Uses a little more battery. The plank and gauntlet timers keep it on either way.' : 'This browser does not support keeping the screen on.'}</small></span>
+          <input id="set-wake" type="checkbox" class="switch" ${D.keepAwake !== false ? 'checked' : ''} ${'wakeLock' in navigator ? '' : 'disabled'}></label>
         <label class="field row"><span>Bodyweight</span>
           <input id="set-bw" type="number" inputmode="decimal" min="0" step="any" value="${D.profile && D.profile.bw ? fmtNum(Math.round(profileBw())) : ''}" placeholder="${unit()}"></label>
         <label class="field row"><span>Lifting experience</span>
@@ -3091,7 +3120,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     if (p.mode === 'plan-add') ui.plan.push(id);
     else if (p.mode === 'plan-replace') { const from = ui.plan[p.i]; ui.plan[p.i] = id; if (from && from !== id) planSwapped(p.i, from, id, 'Replaced with'); }
     else if (p.mode === 'wo-add') { D.active.items.push(newItem(id)); save(); toast(`${getEx(id).name} added`); }
-    else if (p.mode === 'wo-replace') { const A = D.active, old = A.items[A.idx], it = newItem(id); A.items[A.idx] = it; ui.rest = null; save(); if (old.exId !== id) woSwapped(A.idx, old, it, 'Replaced with'); }
+    else if (p.mode === 'wo-replace') { const A = D.active, old = A.items[A.idx], it = newItem(id); A.items[A.idx] = it; save(); if (old.exId !== id) woSwapped(A.idx, old, it, 'Replaced with'); }
     ui.picker = null;
     render();
   }
@@ -3154,7 +3183,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       ui.rest = null;
       save(); render(); window.scrollTo(0, 0);
     },
-    goto(b) { D.active.idx = +b.dataset.i; ui.rest = null; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+    goto(b) { D.active.idx = +b.dataset.i; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); },
     'g-add'() { ui.gPlan = makeGauntlet(); ui.plan.push(G_ID); render(); },
     'g-add-wo'() {
       ui.gPlan = null;
@@ -3247,7 +3276,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       const old = A.items[A.idx];
       const it = newItem(alt);
       A.items[A.idx] = it;
-      ui.rest = null;
       woSwapped(A.idx, old, it);
       save(); render();
     },
@@ -3256,7 +3284,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       currentItem().skipped = true; // keeps any sets already done
       const n = A.items.findIndex((x) => !itemDone(x));
       if (n >= 0) A.idx = n;
-      ui.rest = null;
       save(); render();
     },
     'rest-add'() { if (ui.rest) { ui.rest.end += 30000; ui.rest.total += 30000; } tickClock(); },
@@ -3431,6 +3458,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     if (t.id === 'prog-ex') { ui.progEx = t.value; render(); }
     if (t.id === 'set-units') { D.units = t.value; save(); render(); }
     if (t.id === 'set-rest') { D.rest = +t.value; save(); }
+    if (t.id === 'set-wake') { D.keepAwake = t.checked; save(); syncWake(); }
     if (t.id === 'set-bw' || t.id === 'prof-bw') { D.profile = { ...(D.profile || {}), bw: +t.value || 0, unit: D.units }; save(); render(); }
     if (t.id === 'set-exp' || t.id === 'prof-exp') { D.profile = { ...(D.profile || {}), exp: t.value }; save(); render(); }
     if (t.id === 'import' && t.files[0]) {

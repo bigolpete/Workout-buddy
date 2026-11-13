@@ -24,7 +24,8 @@ Files: `manifest.webmanifest` (app name, colors, icons), `sw.js` (offline cache,
 - **Diagrams**: each lift has an animated stick figure. Tap it to turn it 90° (side ⇄ front; lifts done lying on a bench are seen from the feet). The choice sticks for that lift. Dumbbells are drawn the way you hold them: end-on from the side for presses and curls, like a barbell, and front-to-back for neutral-grip lifts like hammer curls.
 - **Muscle map**: every lift shows a front/back heatmap of the muscles it works. The plan screen has a **Muscle coverage** card that checks each part of the chosen groups (e.g. upper/mid/lower chest) and suggests a lift for anything missed. It also shows how many sets each group gets today (sets where it's only a helper muscle count half). The auto-plan and the exercise picker all favour lifts that fill gaps.
 - **Progress**: per-lift charts (estimated 1RM, heaviest set, volume) and weekly total volume.
-- **History**: past workouts, settings (lb/kg, rest timer), and backup export/import.
+- **History**: past workouts, settings (lb/kg, rest timer, keep screen on), and backup export/import.
+- **Screen on**: during a workout the app keeps the screen awake (Screen Wake Lock), from Start until Finish or Discard. Turn it off in History › Settings. The plank and gauntlet timers keep it on either way. The rest timer keeps counting when you move to another lift.
 
 Data is stored in your browser's localStorage, so use **Export backup** to move it to another device.
 
