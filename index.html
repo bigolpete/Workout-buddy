@@ -261,6 +261,11 @@ h3 { font-size: 1rem; }
 .g-bar i { display: block; height: 100%; background: var(--accent); transition: width .25s linear; }
 .g-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .gauntlet-run.done { border: 1px solid var(--good); }
+.gauntlet-run.flash { animation: g-flash .9s ease-out; }
+@keyframes g-flash { from { box-shadow: 0 0 0 6px var(--accent-soft), inset 0 0 0 999px var(--accent-soft); } to { box-shadow: none; } }
+.g-clock b.soon { animation: g-pulse 1s ease-in-out infinite; }
+@keyframes g-pulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .gauntlet-run.flash, .g-clock b.soon { animation: none; } }
 
 .wo-cta { margin: 4px 0 14px; }
 .upnext ul { list-style: none; margin: 8px 0; padding: 0; }
@@ -2285,21 +2290,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     return out.map(Math.round);
   }
 
-  // beeps and buzzes so you don't have to watch the screen
-  let audio = null;
-  function beep(freq = 880, ms = 160, vol = 0.18) {
-    try {
-      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-      if (audio.state === 'suspended') audio.resume();
-      const o = audio.createOscillator(), v = audio.createGain();
-      o.frequency.value = freq;
-      v.gain.setValueAtTime(vol, audio.currentTime);
-      v.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + ms / 1000);
-      o.connect(v); v.connect(audio.destination);
-      o.start(); o.stop(audio.currentTime + ms / 1000);
-    } catch (err) { /* no sound available */ }
-  }
-
   function gauntletPlanCard(i) {
     const g = ui.gPlan || (ui.gPlan = makeGauntlet());
     return `<article class="lift-card gauntlet-card">
@@ -2327,7 +2317,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     if (!running) {
       return `<section class="card gauntlet-run">
         <h2>⚡ Ab Gauntlet</h2>
-        <p class="sub">${g.rounds} rounds of ${g.moves.length} moves: ${g.work} seconds each with ${g.rest} seconds to switch, ${g.roundRest} seconds between rounds. About ${Math.round(gSecs(g) / 60)} minutes. The timer beeps at each change, so you can put the phone down.</p>
+        <p class="sub">${g.rounds} rounds of ${g.moves.length} moves: ${g.work} seconds each with ${g.rest} seconds to switch, ${g.roundRest} seconds between rounds. About ${Math.round(gSecs(g) / 60)} minutes. The screen flashes and changes colour at each switch, and stays on while it runs.</p>
         <ol class="g-moves">${g.moves.map((id, n) => `<li><span class="thumb g-thumb" data-fig="${esc(id)}"></span><span><span class="muted">${esc(G_SLOTS[n].name)}</span><b>${esc(getEx(id).name)}</b><span class="muted">${esc((getEx(id).cues || [])[1] || '')}</span></span></li>`).join('')}</ol>
         <button class="btn primary block" data-act="g-start">▶ Start the gauntlet</button>
       </section>`;
@@ -2356,7 +2346,7 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     </section>`;
   }
 
-  // called by the clock: update the countdown, beep on changes, finish at the end
+  // called by the clock: update the countdown, flash on changes, finish at the end
   function gTick() {
     const R = ui.gRun;
     if (!R || R.pausedAt) return;
@@ -2365,17 +2355,13 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     if (now.i !== R.seg) {
       const was = R.seg;
       R.seg = now.i;
-      if (was !== undefined) {
-        if (now.seg.kind === 'work') { beep(1046, 350); if (navigator.vibrate) navigator.vibrate(300); }
-        else { beep(660, 250); if (navigator.vibrate) navigator.vibrate([120, 80, 120]); }
-      }
       render();
+      if (was !== undefined) { const card = app.querySelector('.gauntlet-run.live'); if (card) card.classList.add('flash'); }
       return;
     }
     const sec = Math.ceil(now.left);
-    if (sec <= 3 && sec >= 1 && R.tick !== `${now.i}:${sec}`) { R.tick = `${now.i}:${sec}`; beep(now.seg.kind === 'work' ? 520 : 780, 90, 0.12); }
     const t = document.getElementById('g-t');
-    if (t) t.textContent = sec;
+    if (t) { t.textContent = sec; t.classList.toggle('soon', sec <= 3); }
     const bar = document.getElementById('g-bar');
     if (bar) bar.style.width = `${(now.el / now.total) * 100}%`;
   }
@@ -2391,8 +2377,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
     const rounds = work.filter((x) => x > 0).length;
     if (!rounds) { toast('Gauntlet stopped. Nothing logged.'); render(); return; }
     it.sets = work.filter((x) => x > 0).map((x) => ({ w: '0', r: String(x), done: true }));
-    beep(1318, 500);
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
     toast(early ? `Gauntlet ended: ${rounds} round${rounds === 1 ? '' : 's'} logged` : 'Ab Gauntlet done 💪');
     ui.justFinishedLift = true;
     save(); render();
@@ -3184,7 +3168,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       const it = currentItem();
       ui.gRun = { wo: D.active.startedAt, idx: D.active.idx, t0: Date.now(), offset: 0, pausedAt: 0, segs: gSegments(it.g) };
       ui.rest = null; ui.hold = null;
-      beep(880, 120, 0.12); // also unlocks sound on iPhone, which needs a tap first
       holdWake(true);
       D.active.gRun = ui.gRun; save(); // survives the page reloading mid-circuit
       render(); window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3400,7 +3383,6 @@ button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-v
       if (bar) bar.style.width = `${(left / ui.rest.total) * 100}%`;
       if (left === 0) {
         if (box) { box.classList.add('over'); t.textContent = 'Go!'; }
-        if (!ui.rest.buzzed) { ui.rest.buzzed = true; if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }
         if (Date.now() - ui.rest.end > 8000) { ui.rest = null; if (box) box.remove(); }
       }
     }
